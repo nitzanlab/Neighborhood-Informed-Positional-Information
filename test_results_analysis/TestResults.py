@@ -111,5 +111,5 @@ class TestResults(ABC):
 
 
 def pr_prediction_err(predicted_pr_exp, mean_pr_exp_per_pos):
-    per_pos_error_all_pr_genes = np.mean(np.abs(predicted_pr_exp - mean_pr_exp_per_pos), axis=0)
+    per_pos_error_all_pr_genes = np.abs(predicted_pr_exp - mean_pr_exp_per_pos)
     return per_pos_error_all_pr_genes

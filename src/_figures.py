@@ -26,7 +26,7 @@ def plot_figure1_panels():
     #panel i:
     plot_position_posterior_std_all_gene_subsets()
 
-def plot_figure2_and_supp_related_panels():
+def plot_figure2_and_related_supp_panels():
     """
     This figure presents pair-rule expression profile prediction given the position probabilistic decoder.
     We show both qualitatively, quantitivately across the AP axis, and aggregated summary results
@@ -35,13 +35,28 @@ def plot_figure2_and_supp_related_panels():
     """
     ##pair rule prediction across AP axis - qualitative comparison
     #figure 2 panel b - Prd prediction and supplementary Run and Eve prediction
-    #pair_rule_prediction_across_positions()
+    pair_rule_prediction_across_positions()
 
-    #figure 2 panel c - reconstruction error across AP axis:
-
-    #figure 2 panel d - summary results - mean prediction error per pair-rule gene:
+    #figure 2 panel c -reconstruction error across AP axis, d - summary results - mean prediction error per pair-rule gene:
     plot_all_pr_genes_mean_prediction_error()
 
-def plot_figure3_and_supp_related_panels():
+def plot_figure3_panels():
+    """
+    This figure presents position decoding and pair-rule expression prediction results
+    for Osk mutant background embryos
+    :return:
+    """
+    #plot_all_mutant_results(mutant_type='osk')
+
+    ##wild type expression of all gap genes for comparison
+
+    ##mutant pair-rule prediction and errors:
+    plot_mutant_pr_predictions_and_errors(mutant_type='osk')
+
+
+
+def plot_figure5_panels():
     pass
 
+def plot_figure6_panels():
+    pass
