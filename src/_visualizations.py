@@ -420,7 +420,7 @@ def plot_prediction_loss_weighted_by_expression_variance_mutant(mutant_type, sc_
                         label_axes=label_axes, x_label=x_label, y_label='expression corr')
 
 
-def plot_mutant_pr_predictions_and_errors(mutant_type):
+def plot_mutant_pr_predictions_and_errors(mutant_type, plot_binned_position_errors=False):
     sc_pr_pred, wn_pr_pred = calculate_mutant_pr_pred(mutant_type)
 
     mean_mutant_pr_exp = get_mutant_pr_data(mutant_type)
@@ -429,4 +429,5 @@ def plot_mutant_pr_predictions_and_errors(mutant_type):
 
     sc_weighted_pr_err, wn_weighted_pr_err = calculate_mutant_pr_pred_err(mutant_type, sc_pr_pred, wn_pr_pred, mean_exp_mutant_pr_per_position)
     plot_predicted_prs_across_positions(wn_pr_pred, sc_pr_pred[:, 1:-1, :], full_mutant_pr_data[:, 1:-1, :])
-    plot_error_pr_error_per_position(sc_weighted_pr_err, wn_weighted_pr_err)
+    if plot_binned_position_errors:
+        plot_error_pr_error_per_position(sc_weighted_pr_err, wn_weighted_pr_err)

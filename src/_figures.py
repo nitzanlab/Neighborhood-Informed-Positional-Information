@@ -46,17 +46,21 @@ def plot_figure3_panels():
     for Osk mutant background embryos
     :return:
     """
-    #plot_all_mutant_results(mutant_type='osk')
+    plot_all_mutant_results(mutant_type='osk')
 
-    ##wild type expression of all gap genes for comparison
+    ##TODO:wild type expression of all gap genes for comparison
 
     ##mutant pair-rule prediction and errors:
-    plot_mutant_pr_predictions_and_errors(mutant_type='osk')
+    plot_mutant_pr_predictions_and_errors(mutant_type='osk', plot_binned_position_errors=True)
 
 
 
 def plot_figure5_panels():
-    pass
+    for mutant_type in MUTANT_TYPES:
+        plot_all_mutant_results(mutant_type)
+
 
 def plot_figure6_panels():
-    pass
+    for mutant_type in MUTANT_TYPES:
+        plot_mutant_pr_predictions_and_errors(mutant_type)
+
