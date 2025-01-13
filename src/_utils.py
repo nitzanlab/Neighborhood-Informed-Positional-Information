@@ -1,6 +1,6 @@
 from src._constants import *
 from test_results_analysis.TestResults import *
-
+from data._data import *
 def set_style():
     plt.rcParams.update(plt.rcParamsDefault)
     plt.rcParams.update({'figure.titlesize': 26, 'figure.titleweight': 'bold', 'axes.titlesize': 22,
@@ -40,3 +40,28 @@ def caclulate_positional_error_per_decoding_map_MAP_positions(decoding_type):
 
 def calculate_positional_inf(sigma_x):
     return np.log2(1/(sigma_x*np.sqrt(2*np.pi*np.e)))
+
+
+def get_all_gap_gene_subsets_list(save=False):
+    all_decoding_gene_subsets = []
+    for r in range(1, len(GAP_GENES) + 1):
+        for subset_decode_genes in combinations(GAP_GENES, r):
+            all_decoding_gene_subsets.append(list(subset_decode_genes))
+    if save:
+        filename = os.path.join(DROSO_RES_DIR, 'decoding_gene_subsets.pkl')
+        with open(filename, 'wb') as file:
+            pickle.dump(all_decoding_gene_subsets, file)
+    return all_decoding_gene_subsets
+
+def get_decoding_maps():
+    sc_map = TestResults.from_pickle(DROSO_RES_DIR, 'sc_wt_sigmax', GAP_GENES)
+    sc_map.normalized_decoding_map = sc_map.raw_test_results[:, 1:-1, 1:-1]
+    wn_map = TestResults.from_pickle(DROSO_RES_DIR, 'wn_wt_sigmax', GAP_GENES)
+    wn_map.normalized_decoding_map = wn_map.raw_test_results
+    return sc_map, wn_map
+
+def get_pr_expected_expression_profiles(decoding_map):
+    mean_wt_pr_exp = get_mean_wt_pr_per_position(EDGE_TRIM)[1:-1, :]
+    pr_predictions = decoding_map.expected_pr_exp(mean_wt_pr_exp)
+    return pr_predictions
+

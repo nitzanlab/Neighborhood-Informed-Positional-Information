@@ -1,8 +1,8 @@
 
-
 from src._constants import *
 from data._preprocessing import *
 from data._data import *
+from data.Data import *
 
 
 # def normalize_data(data_to_normalize):
@@ -17,7 +17,7 @@ class WildTypeDrosophilaData(Data):
         self.save_training = save_training
         self.save_dir = save_dir
         self.edge_trim = edge_trim
-        super().__init__(data)
+        super().__init__(data, 'WT Drosophila')
         if training:
             self.preprocess(data, edge_trim)
 
