@@ -1,5 +1,5 @@
 from src._imports import *
-from data._data import *
+from src._constants import *
 
 
 
@@ -39,7 +39,6 @@ def get_normalized_decode_data(file_names, non_genes_list, genes, low_time=LOW_T
     data_time_filtered = time_filter_data(loaded_data, genes, low_time,upper_time)
     min_mean_exp, max_mean_exp = min_and_max_mean_gene_expression(data_time_filtered,genes)
     data_decode = normalize_gene_exp(data_time_filtered, np.array(min_mean_exp), np.array(max_mean_exp), genes)
-
     return data_decode
 
 def time_filter_data(data_to_filter,genes, lower_thresh, upper_thresh):

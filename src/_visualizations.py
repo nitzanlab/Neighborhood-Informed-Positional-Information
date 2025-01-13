@@ -5,6 +5,7 @@ from src._imports import *
 from src._constants import *
 from data._preprocessing import *
 from data._data import *
+from src._utils import *
 #### panels b and c, gap gene and pair rule genes pairwise correlations:
 def gene_expression_pairwise_correlation_plots():
     plot_gap_gene_pairwise_correlations()
@@ -76,3 +77,39 @@ def pairwise_correlation_pair_rule_genes():
             correlations.append(corr)
         all_genes_corrs.append(np.array(correlations))
     return np.array(all_genes_corrs)
+
+### figure 1d, position information in bits panel
+def plot_positional_information_in_bits():
+    sigma_x_wn = caclulate_positional_error_per_decoding_map_MAP_positions(f'wn_wt_sigmax')  # vs 'wn'
+    sigma_x_sc = caclulate_positional_error_per_decoding_map_MAP_positions(f'sc_wt_sigmax')
+    positions = np.linspace(0.1, 0.9, sigma_x_sc.shape[1])
+
+    plt.plot(positions,np.log2(N)*np.ones_like(positions), color='gray', linestyle='--', label='Unique cell specification')
+    plt.fill_between(x=positions,y1=np.log2(N+N_STD), y2=np.log2(N-N_STD),  color='gray', alpha=0.5)
+
+
+
+    mean_pos_inf_sc = np.mean(calculate_positional_inf(sigma_x_sc),axis=0)
+    mean_pos_inf_wn = np.mean(calculate_positional_inf(sigma_x_wn),axis=0)
+    std_pos_inf_sc = np.std(calculate_positional_inf(sigma_x_sc),axis=0)
+    std_pos_inf_wn = np.std(calculate_positional_inf(sigma_x_wn),axis=0)
+    plt.plot(positions, mean_pos_inf_sc, label=DECODER_NAMES['sc'], color=DECODER_TYPE_COLOR['sc'])
+    plt.plot(positions[1:-1], mean_pos_inf_wn, label=DECODER_NAMES['wn'], color=DECODER_TYPE_COLOR['wn'])
+    plt.fill_between(positions, mean_pos_inf_sc+ std_pos_inf_sc, mean_pos_inf_sc- std_pos_inf_sc, color=DECODER_TYPE_COLOR['sc'],alpha=0.3)
+    plt.fill_between(positions[1:-1], mean_pos_inf_wn + std_pos_inf_wn,
+                     mean_pos_inf_wn - std_pos_inf_wn, color=DECODER_TYPE_COLOR['wn'], alpha=0.3)
+
+    plt.legend(loc='lower right')
+    plt.xlabel('position (x/L)')
+    plt.ylabel('positional information in bits')
+    plt.ylim(0,10)
+    plt.xlim(0.1,0.9)
+    plt.tight_layout()
+    plt.show()
+
+def plot_decoding_with_one_gene_comparison(gene):
+    pass
+
+
+
+

@@ -6,6 +6,7 @@ def plot_figure1_panels():
     :return:
     """
     ##panels b and c:
-    gene_expression_pairwise_correlation_plots()
-
+    #gene_expression_pairwise_correlation_plots()
+    plot_positional_information_in_bits()
+    plot_decoding_with_one_gene_comparison()
     pass

@@ -6,8 +6,7 @@ Description:
 Key Functions:
     - load_data: Load raw data from a specified path.
 """
-from src._constants import *
-from src._imports import *
+
 from data._preprocessing import *
 
 
@@ -37,9 +36,6 @@ def load_all_wt_droso_train_data(save=False, save_dir='', save_name=''): #combin
         wt_data = data[data['genotype'] == 1]
         if mutant_type_stained_with_wt=='wt': #leave out 38 wt embryos 40-44 as test set to compare to paper
             wt_data = wt_data[(wt_data['age']>UPPER_TIME) | (wt_data['age']<LOW_TIME)]
-
-        #wt_data = wt_data[(wt_data['age']<=44) & (wt_data['age']>=40)]
-        #wt_data['Mutant_Type_Stained_with'] = mutant_type_stained_with_wt
         all_wt_datas.append(wt_data)
     combined_df = pd.concat(all_wt_datas, ignore_index=True)
     normalized_combined_df = normalize_all_training_data(combined_df[GAP_GENES])
@@ -114,3 +110,9 @@ def filter_simultaneous_wt(data,genes, lower_thresh,upper_thresh):
         (data['age'] >= lower_thresh) & (data['age'] <= upper_thresh)]
     data = data.loc[data['genotype'] == 1]
     return data[genes]
+
+
+def normalize_all_training_data(training_data):
+    min_mean_exp, max_mean_exp = min_and_max_mean_gene_expression(training_data, GAP_GENES)
+    data_decode = normalize_gene_exp(training_data, np.array(min_mean_exp), np.array(max_mean_exp), GAP_GENES)
+    return data_decode

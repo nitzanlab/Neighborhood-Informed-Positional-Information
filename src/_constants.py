@@ -14,7 +14,10 @@ SAVE_ADDR = SAVE_HOME
 TRAINING_DATA_DIR = r'C:\Users\micha\thesis\code\data\position_decoding\drosophila_gregor_optimal_decoding\Data\wt_training_data'
 DROSO_RES_DIR = r'C:\Users\micha\thesis\code\data\position_decoding\drosophila_gregor_optimal_decoding\Results\all_results'
 
+
+
 MUTANT_PAIR_RULE_FILES_PATHS = r'C:\Users\micha\thesis\code\data\position_decoding\drosophila_gregor_optimal_decoding\Data\Pair_rule\pair_rule_data_raw_dorsal_'
+MUTANT_GAP_GENES_FILE_PATHS =r'C:\Users\micha\thesis\code\data\position_decoding\drosophila_gregor_optimal_decoding\Data\Gap\gap_data_raw_dorsal_wt_'
 
 """
 Constants:
@@ -29,6 +32,11 @@ GAP_GENE_MUTANT_LOWER_TIME = 38
 GAP_GENE_MUTANT_UPPER_TIME = 49
 
 EDGE_TRIM = 100
+
+INFORMATION_GAP_THRESHOLD = 1.75
+
+N = 90 #Finding the Last Bits, McGough et. al
+N_STD = 4
 
 DECODING_TYPES = ['wn','sc']
 
@@ -66,3 +74,15 @@ MUTANT_PAIR_RULE_DATA = ['bcd_only_germline_clones', 'bcd_osk', 'bcd_tsl', 'bcdE
 WT_PAIR_RULE_DATA = 'wt_time_series'
 
 MUTANT_TYPES  = ['etsl', 'bcdE1','osk','bcd_osk','bcd_only_germline_clones', 'bcd_tsl' ]
+
+
+GAMMA = 1e-4
+
+##plotting constants:
+POSITION_X_LABEL = 'position (x/L)'
+EXP_Y_LABEL = 'gene expression'
+POSITIONS_START = 0.1
+POSITIONS_END = 0.9
+
+ONE_GENE_EXAMPLE_GENE = 'Kr'
+THREE_GENES_EXAMPLE_GENS = ['Kr', 'Gt', 'Hb']
