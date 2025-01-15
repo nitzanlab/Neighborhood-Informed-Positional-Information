@@ -11,7 +11,7 @@ from data._preprocessing import *
 
 
 def get_wt_pr_data():
-    pair_rule_wt_path = MUTANT_PAIR_RULE_FILES_PATHS + WT_PAIR_RULE_DATA + '.mat'
+    pair_rule_wt_path = MUTANT_PAIR_RULE_DIR_PATH + WT_PAIR_RULE_DATA + '.mat'
     wt_pair_rule_data = get_normalized_decode_data([pair_rule_wt_path],
                                                    WT_PAIR_RULE_NON_GENE_LIST,
                                                    ALL_PAIR_RULE_GENES,
@@ -45,7 +45,7 @@ def load_all_wt_droso_train_data(save=False, save_dir='', save_name=''): #combin
 
 
 def get_wt_pr_data():
-    pair_rule_wt_path = MUTANT_PAIR_RULE_FILES_PATHS + WT_PAIR_RULE_DATA + '.mat'
+    pair_rule_wt_path = MUTANT_PAIR_RULE_DIR_PATH + WT_PAIR_RULE_DATA + '.mat'
     wt_pair_rule_data = get_normalized_decode_data([pair_rule_wt_path],
                                                    WT_PAIR_RULE_NON_GENE_LIST,
                                                    ALL_PAIR_RULE_GENES,
@@ -71,7 +71,7 @@ def reformat_exp_data_to_arr(data, edge_trim=None):
 
 ##MUTANT data
 def get_mutant_pr_data(mutant_type:str):
-    mutant_path = MUTANT_PAIR_RULE_FILES_PATHS + mutant_type + '.mat'
+    mutant_path = MUTANT_PAIR_RULE_DIR_PATH + mutant_type + '.mat'
     mutant_pr_data = get_normalized_decode_data([mutant_path],
                                                 PAIR_RULE_GENES_NON_GENE_LIST,
                                                 ALL_PAIR_RULE_GENES,
@@ -82,7 +82,7 @@ def get_mutant_pr_data(mutant_type:str):
 
 
 def get_mutant_gap_data(mutant_type:str):
-    mutant_path = MUTANT_GAP_GENES_FILE_PATHS + mutant_type + '.mat'
+    mutant_path = MUTANT_GAP_GENE_DIR_PATH + mutant_type + '.mat'
     mutant_gap_data = get_normalized_decode_data_mutant([mutant_path],NON_GENES_LIST,GAP_GENES,
                                              38,
                                              49)

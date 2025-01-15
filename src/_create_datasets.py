@@ -1,21 +1,51 @@
 from data.WildTypeDrosophila import *
+from data.TestResults import *
+from src._utils import *
 
-
-
-def wt_droso_load_preprocess_train_and_eval_neighborhood_informed(encode_genes):
+def calculate_wt_droso_decoding_maps_one_gene_group(encode_genes):
     wt_droso = WildTypeDrosophilaData(training=True)
     test_data = load_wt_gap_test_data()
-    # #train and test sc
-    decoding_map_wn = wt_droso.train_and_test_wn(test_data, ENCODE_GENES)
-    wt_droso_results = TestResults(decoding_map_wn, 'wn', wt_droso.means_wn, wt_droso.covs_wn, ENCODE_GENES)
-    #wt_droso_results.plot_decoding_map('')
-    wt_droso_results.save(DROSO_RES_DIR)
 
+    #train and test cell-independent
+    decoding_sc = wt_droso.train_and_test_sc(test_data, encode_genes)
+    wt_droso_results_sc = TestResults(decoding_sc, 'sc_wt', wt_droso.means_sc, wt_droso.std_sc, encode_genes,
+                                      edge_trim=EDGE_TRIM)
+    wt_droso_results_sc.save(DROSO_RES_DIR)
 
-def calculate_wt_decoding_map(encode_genes):
-    wt_droso = WildTypeDrosophilaData(None)
+    #train and test neighborhood-informed
+    decoding_wn = wt_droso.train_and_test_wn(test_data, encode_genes)
+    wt_droso_results_wn = TestResults(decoding_wn, 'wn_wt', wt_droso.means_wn, wt_droso.covs_wn, encode_genes,
+                                      edge_trim=EDGE_TRIM)
+    wt_droso_results_wn.save(DROSO_RES_DIR)
+
+def calculate_all_gene_subset_decoding_maps_WT():
+    gap_genes_subsets = get_all_gap_gene_subsets_list()
+    wt_droso = WildTypeDrosophilaData(training=True, edge_trim=None)
     test_data = load_wt_gap_test_data()
-    decoding_map_sc = wt_droso.train_and_test_sc(test_data, encode_genes)
-    decoding_map_wn = wt_droso.train_and_test_wn(test_data, encode_genes)
+    for gap_genes_subset in gap_genes_subsets:
+        print(gap_genes_subset)
+        decoding_sc = wt_droso.train_and_test_sc(test_data, gap_genes_subset)
+        wt_droso_results_sc = TestResults(decoding_sc, 'sc_wt', wt_droso.means_sc, wt_droso.std_sc, gap_genes_subset,
+                                          edge_trim=EDGE_TRIM)
+        wt_droso_results_sc.save(DROSO_RES_DIR)
 
-    pass
+        decoding_wn = wt_droso.train_and_test_wn(test_data, gap_genes_subset)
+        wt_droso_results_wn = TestResults(decoding_wn, 'wn_wt', wt_droso.means_wn, wt_droso.covs_wn, gap_genes_subset,
+                                          edge_trim=EDGE_TRIM)
+        wt_droso_results_wn.save(DROSO_RES_DIR)
+
+def calculate_all_mutant_decoding_maps():
+    wt_droso = WildTypeDrosophilaData(training=True, edge_trim=EDGE_TRIM)
+    wt_droso.train_sc(GAP_GENES)
+    wt_droso.train_wn(GAP_GENES)
+
+    for mutant_type in MUTANT_TYPES:
+        gap_data = get_mutant_gap_data(mutant_type)
+        decoding_wn = wt_droso.test_wn(gap_data, GAP_GENES)
+        decoding_sc = wt_droso.test_sc(gap_data, GAP_GENES)
+        results_wn = TestResults(decoding_wn, f'{mutant_type}_wn', wt_droso.means_wn, wt_droso.covs_wn, GAP_GENES,
+                                 edge_trim=EDGE_TRIM)
+        results_wn.save(DROSO_RES_DIR)
+        results_sc = TestResults(decoding_sc, f'{mutant_type}_sc', wt_droso.means_wn, wt_droso.covs_wn, GAP_GENES,
+                                 edge_trim=EDGE_TRIM)
+        results_sc.save(DROSO_RES_DIR)

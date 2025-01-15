@@ -1,23 +1,25 @@
 
-
-
+import os
 
 """
 Directories:
 """
 HOME = "C:/Users/micha/thesis/code/data/position_decoding/drosophila_gregor_optimal_decoding/Data/Gap/"
-SAVE_HOME = "C:/Users/Michal/Documents/masters/thesis_res/neighboring_dist_results/"
-LAB = "/cs/labs/mornitzan/michal.erez14/thesis/drosophilia_optimalcoding/Data/Data/Gap/"
-WHERE = HOME
-SAVE_ADDR = SAVE_HOME
 
-TRAINING_DATA_DIR = r'C:\Users\micha\thesis\code\data\position_decoding\drosophila_gregor_optimal_decoding\Data\wt_training_data'
+#HOME_DIR = r'C:\Users\micha\Neighborhood_Informed_PD'
+WHERE = HOME
+
+DROSO_DATA_DIR_PATH = r'C:\Users\micha\thesis\code\data\position_decoding\drosophila_gregor_optimal_decoding\Data'
+
+WT_GAP_GENE_DATA_DIR = r'C:\Users\micha\thesis\code\data\position_decoding\drosophila_gregor_optimal_decoding\Data\wt_training_data'
 DROSO_RES_DIR = r'C:\Users\micha\thesis\code\data\position_decoding\drosophila_gregor_optimal_decoding\Results\all_results'
 
 
+MUTANT_PAIR_RULE_DIR_PATH = os.path.join(DROSO_DATA_DIR_PATH, 'Pair_rule\pair_rule_data_raw_dorsal_')
+MUTANT_GAP_GENE_DIR_PATH = os.path.join(DROSO_DATA_DIR_PATH, 'Gap\gap_data_raw_dorsal_wt_')
 
-MUTANT_PAIR_RULE_FILES_PATHS = r'C:\Users\micha\thesis\code\data\position_decoding\drosophila_gregor_optimal_decoding\Data\Pair_rule\pair_rule_data_raw_dorsal_'
-MUTANT_GAP_GENES_FILE_PATHS =r'C:\Users\micha\thesis\code\data\position_decoding\drosophila_gregor_optimal_decoding\Data\Gap\gap_data_raw_dorsal_wt_'
+#MUTANT_PAIR_RULE_DIR_PATH = r'C:\Users\micha\thesis\code\data\position_decoding\drosophila_gregor_optimal_decoding\Data\Pair_rule\pair_rule_data_raw_dorsal_'
+#MUTANT_GAP_GENE_DIR_PATH = r'C:\Users\micha\thesis\code\data\position_decoding\drosophila_gregor_optimal_decoding\Data\Gap\gap_data_raw_dorsal_wt_'
 
 """
 Constants:
@@ -75,6 +77,8 @@ WT_PAIR_RULE_DATA = 'wt_time_series'
 
 MUTANT_TYPES  = ['etsl', 'bcdE1','osk','bcd_osk','bcd_only_germline_clones', 'bcd_tsl' ]
 
+ONE_MUTATION_TYPES = ['etsl', 'bcdE1', 'osk']
+DOUBLE_MUTATION_TYPES = ['bcd_osk','bcd_only_germline_clones', 'bcd_tsl']
 
 GAMMA = 1e-4
 

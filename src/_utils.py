@@ -53,7 +53,7 @@ def get_all_gap_gene_subsets_list(save=False):
             pickle.dump(all_decoding_gene_subsets, file)
     return all_decoding_gene_subsets
 
-def get_decoding_maps():
+def get_wt_decoding_maps():
     sc_map = TestResults.from_pickle(DROSO_RES_DIR, 'sc_wt_sigmax', GAP_GENES)
     sc_map.normalized_decoding_map = sc_map.raw_test_results[:, 1:-1, 1:-1]
     wn_map = TestResults.from_pickle(DROSO_RES_DIR, 'wn_wt_sigmax', GAP_GENES)
@@ -65,6 +65,12 @@ def get_pr_expected_expression_profiles(decoding_map):
     pr_predictions = decoding_map.expected_pr_exp(mean_wt_pr_exp)
     return pr_predictions
 
+def get_pr_MAP_expression_profiles(decoding_map):
+    mean_wt_pr_exp = get_mean_wt_pr_per_position(EDGE_TRIM)[1:-1, :]
+    pr_predictions = decoding_map.predicted_pr_map_across_positions(mean_wt_pr_exp)
+    return pr_predictions
+
+
 def compare_expression_correlations(mutant_type, wn_pred, sc_pred):
     mutant_pr_exp = get_mutant_pr_data(mutant_type)
     ground_truth = reformat_exp_data_to_arr(mutant_pr_exp, EDGE_TRIM)[:, 1:-1, :]
@@ -75,14 +81,14 @@ def compare_expression_correlations(mutant_type, wn_pred, sc_pred):
     for i, gene in enumerate(PAIR_RULE_GENES):
         # Step 1: Compute ground truth mean slope
         gt_gene = ground_truth[:, :, i]
-        smooth_gt = gaussian_filter1d(gt_gene, sigma=20, axis=1)
+        smooth_gt = gt_gene #gaussian_filter1d(gt_gene, sigma=20, axis=1)
         mean_gt_gene = np.mean(smooth_gt, axis=0)
 
         pred_wn_gene = wn_pred[:, :, i]  # Extract one feature
-        smoothed_preds_wn = gaussian_filter1d(pred_wn_gene, sigma=20, axis=1)
+        smoothed_preds_wn = pred_wn_gene #gaussian_filter1d(pred_wn_gene, sigma=20, axis=1)
 
         pred_sc_gene = sc_pred[:, :, i]  # Extract one feature
-        smoothed_preds_sc = gaussian_filter1d(pred_sc_gene, sigma=20, axis=1)
+        smoothed_preds_sc = pred_sc_gene #gaussian_filter1d(pred_sc_gene, sigma=20, axis=1)
 
         num_pred_embryos = pred_wn_gene.shape[0]
 
@@ -135,6 +141,14 @@ def calculate_mutant_pr_pred_err(mutant_type, sc_pr_pred, wn_pr_pred,mean_exp_mu
 
     std_pr_gene_per_pos = np.std(full_mutant_pr_data, axis=0)[1:-1, :]
 
-    sc_weighted_pr_err = (sc_pr_pred_err) / (std_pr_gene_per_pos)  # [:,200:-100,:]
-    wn_weighted_pr_err = (wn_pr_pred_err) / (std_pr_gene_per_pos)
+    sc_weighted_pr_err = (sc_pr_pred_err)/ (std_pr_gene_per_pos)  # [:,200:-100,:]
+    wn_weighted_pr_err = (wn_pr_pred_err)/ (std_pr_gene_per_pos)
     return sc_weighted_pr_err, wn_weighted_pr_err
+
+def get_std_per_position_decoding_map(decoding_map):
+    num_embryos = decoding_map.shape[0]
+    actual_positions = np.arange(decoding_map.shape[1]).reshape(1, -1, 1)
+    expected_positions = np.sum(decoding_map * actual_positions, axis=1)
+    variance = np.sum(decoding_map * (actual_positions - expected_positions[:, None, :]) ** 2, axis=1)
+    std_dev = np.sqrt(variance)
+    return std_dev

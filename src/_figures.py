@@ -35,7 +35,7 @@ def plot_figure2_and_related_supp_panels():
     """
     ##pair rule prediction across AP axis - qualitative comparison
     #figure 2 panel b - Prd prediction and supplementary Run and Eve prediction
-    pair_rule_prediction_across_positions()
+    #pair_rule_prediction_across_positions()
 
     #figure 2 panel c -reconstruction error across AP axis, d - summary results - mean prediction error per pair-rule gene:
     plot_all_pr_genes_mean_prediction_error()
@@ -46,12 +46,15 @@ def plot_figure3_panels():
     for Osk mutant background embryos
     :return:
     """
-    plot_all_mutant_results(mutant_type='osk')
+    #plot_all_mutant_results(mutant_type='osk')
 
     ##TODO:wild type expression of all gap genes for comparison
 
     ##mutant pair-rule prediction and errors:
     plot_mutant_pr_predictions_and_errors(mutant_type='osk', plot_binned_position_errors=True)
+
+    #plot_one_mutation_expression_correlation()
+
 
 
 
