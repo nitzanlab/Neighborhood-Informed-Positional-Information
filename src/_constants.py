@@ -6,8 +6,8 @@ Directories:
 """
 #HOME = "C:/Users/micha/thesis/code/data/position_decoding/drosophila_gregor_optimal_decoding/Data/Gap/"
 
-HOME_DIR = r'C:\Users\micha\Neighborhood_Informed_PD'
-WHERE = os.path.join(os.path.join(HOME_DIR,'Drosophila_Data'),'Gap')
+
+
 
 #DROSO_DATA_DIR_PATH = r'C:\Users\micha\thesis\code\data\position_decoding\drosophila_gregor_optimal_decoding\Data'
 
@@ -15,8 +15,10 @@ WHERE = os.path.join(os.path.join(HOME_DIR,'Drosophila_Data'),'Gap')
 
 #DROSO_RES_DIR = r'C:\Users\micha\thesis\code\data\position_decoding\drosophila_gregor_optimal_decoding\Results\all_results'
 
+HOME_DIR = r'C:\Users\micha\Neighborhood_Informed_PD'
 DROSO_RES_DIR = os.path.join(HOME_DIR, 'Droso_Res')
 DROSO_DATA_DIR_PATH = os.path.join(HOME_DIR, 'Drosophila_Data')
+WHERE = os.path.join(DROSO_DATA_DIR_PATH,'Gap')
 
 
 
@@ -47,6 +49,8 @@ N_STD = 4
 
 DECODING_TYPES = ['wn','sc']
 
+WT_DECODE_TYPES = ['wn_wt','sc_wt']
+
 NON_GENES_LIST = ['index', 'orient', 'dist', 'age', 'genotype']
 GAP_GENES = ['Kni', 'Kr', 'Gt', 'Hb']
 ALL_PAIR_RULE_GENES = ['Nuc', 'Eve', 'Run', 'Prd']
@@ -56,15 +60,15 @@ WT_PAIR_RULE_GENES = ['Hoechst', 'Eve', 'Run', 'Prd']
 
 PAIR_RULE_GENES =  ['Eve', 'Run', 'Prd']
 PAIR_RULE_GENES_NON_GENE_LIST =  NON_GENES_LIST
-WT_EMBRYO_FILE_NAMES = [WHERE + "gap_data_raw_dorsal_wt.mat",
-                        WHERE + "gap_data_raw_dorsal_wt_bcdE1.mat",
-                        WHERE + "gap_data_raw_dorsal_wt_bcd_nos_tsl.mat",
-                        WHERE + "gap_data_raw_dorsal_wt_bcd_only_germline_clones.mat",
-                        WHERE + "gap_data_raw_dorsal_wt_bcd_osk.mat",
-                        WHERE + "gap_data_raw_dorsal_wt_bcd_tsl.mat",
-                        WHERE + "gap_data_raw_dorsal_wt_etsl.mat",
-                        WHERE + "gap_data_raw_dorsal_wt_osk.mat",
-                        WHERE + "gap_data_raw_dorsal_wt_time_series.mat"]
+WT_EMBRYO_FILE_NAMES = [os.path.join(WHERE,"gap_data_raw_dorsal_wt.mat"),
+                        os.path.join(WHERE, "gap_data_raw_dorsal_wt_bcdE1.mat"),
+                        os.path.join(WHERE, "gap_data_raw_dorsal_wt_bcd_nos_tsl.mat"),
+                        os.path.join(WHERE, "gap_data_raw_dorsal_wt_bcd_only_germline_clones.mat"),
+                        os.path.join(WHERE, "gap_data_raw_dorsal_wt_bcd_osk.mat"),
+                        os.path.join(WHERE, "gap_data_raw_dorsal_wt_bcd_tsl.mat"),
+                        os.path.join(WHERE, "gap_data_raw_dorsal_wt_etsl.mat"),
+                        os.path.join(WHERE, "gap_data_raw_dorsal_wt_osk.mat"),
+                        os.path.join(WHERE, "gap_data_raw_dorsal_wt_time_series.mat")]
 
 GAP_GENE_COLORS = {
     'Kr': '#8c564b',  # Brown (neutral and earthy)

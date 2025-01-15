@@ -54,9 +54,9 @@ def get_all_gap_gene_subsets_list(save=False):
     return all_decoding_gene_subsets
 
 def get_wt_decoding_maps():
-    sc_map = TestResults.from_pickle(DROSO_RES_DIR, 'sc_wt_sigmax', GAP_GENES)
+    sc_map = TestResults.from_pickle(DROSO_RES_DIR, 'sc_wt', GAP_GENES)
     sc_map.normalized_decoding_map = sc_map.raw_test_results[:, 1:-1, 1:-1]
-    wn_map = TestResults.from_pickle(DROSO_RES_DIR, 'wn_wt_sigmax', GAP_GENES)
+    wn_map = TestResults.from_pickle(DROSO_RES_DIR, 'wn_wt', GAP_GENES)
     wn_map.normalized_decoding_map = wn_map.raw_test_results
     return sc_map, wn_map
 

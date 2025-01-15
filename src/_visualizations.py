@@ -81,8 +81,8 @@ def pairwise_correlation_pair_rule_genes():
 
 ### figure 1d, position information in bits panel
 def plot_positional_information_in_bits():
-    sigma_x_wn = caclulate_positional_error_per_decoding_map_MAP_positions(f'wn_wt_sigmax')  # vs 'wn'
-    sigma_x_sc = caclulate_positional_error_per_decoding_map_MAP_positions(f'sc_wt_sigmax')
+    sigma_x_wn = caclulate_positional_error_per_decoding_map_MAP_positions(f'wn_wt')  # vs 'wn'
+    sigma_x_sc = caclulate_positional_error_per_decoding_map_MAP_positions(f'sc_wt')
     positions = np.linspace(0.1, 0.9, sigma_x_sc.shape[1])
 
     plt.plot(positions,np.log2(N)*np.ones_like(positions), color='gray', linestyle='--', label='Unique cell specification')
@@ -106,10 +106,10 @@ def plot_positional_information_in_bits():
     plt.tight_layout()
     plt.show()
 
-def plot_decoding_maps_comparison(genes:list, vmaxs, xlim):
+def plot_decoding_maps_comparison_wt(genes:list, vmaxs, xlim):
     wt_droso = WildTypeDrosophilaData(training=True)
     wt_droso.plot_gene_exp_over_positions(genes)
-    plot_decoding_maps([genes], DECODING_TYPES ,vmaxs, xlim)
+    plot_decoding_maps([genes], WT_DECODE_TYPES,vmaxs, xlim)
 
 
 def plot_decoding_maps(genes_subset_list, types, vmaxs, xlim):
@@ -132,9 +132,9 @@ def plot_position_posterior_std_all_gene_subsets():
     for gene_subset in all_gene_subsets:
         num_genes = len(gene_subset)
         genes_as_label.append('\n'.join(gene_subset))
-        sc_map = TestResults.from_pickle(DROSO_RES_DIR, 'sc', gene_subset)
+        sc_map = TestResults.from_pickle(DROSO_RES_DIR, 'sc_wt', gene_subset)
         sc_map.normalized_decoding_map = sc_map.normalized_decoding_map[:, 1:-1, 1:-1]
-        wn_map = TestResults.from_pickle(DROSO_RES_DIR, 'wn', gene_subset)
+        wn_map = TestResults.from_pickle(DROSO_RES_DIR, 'wn_wt', gene_subset)
 
         wn_weighted_err = wn_map.measure_weighted_dist_prediction_error()
         sc_weighted_err = sc_map.measure_weighted_dist_prediction_error()
@@ -187,7 +187,7 @@ def plot_bar_comparison(wn_mean_errs, wn_std_errs, sc_mean_errs, sc_std_errs, la
     plt.xticks(br1 + (0.5) * barWidth, labels)
     #plt.title(data_type)
     plt.legend(loc="lower left")
-    plt.ylim(-0.5,1)
+    #plt.ylim(0,0.4)
     plt.tight_layout()
     plt.subplots_adjust(left=0.2)
     plt.show()
@@ -205,9 +205,9 @@ def plot_position_MAP_error_all_gene_subsets():
     for gene_subset in all_gene_subsets:
         num_genes = len(gene_subset)
         genes_as_label.append('\n'.join(gene_subset))
-        sc_map = TestResults.from_pickle(DROSO_RES_DIR, 'sc', gene_subset)
+        sc_map = TestResults.from_pickle(DROSO_RES_DIR, 'sc_wt', gene_subset)
         sc_map.normalized_decoding_map = sc_map.normalized_decoding_map[:, 1:-1, 1:-1]
-        wn_map = TestResults.from_pickle(DROSO_RES_DIR, 'wn', gene_subset)
+        wn_map = TestResults.from_pickle(DROSO_RES_DIR, 'wn_wt', gene_subset)
 
         wn_weighted_err = wn_map.calculate_MAP_error()
         sc_weighted_err = sc_map.calculate_MAP_error()
@@ -354,12 +354,10 @@ def plot_error_pr_error_per_position(sc_weighted_pr_err_std, wn_weighted_pr_err_
 
 ####################### mutant background embryo analyses related functions ##############################
 def plot_all_mutant_results(mutant_type):
-    #plot_mutant_gap_gene(mutant_type)
-    #plot_decoding_maps_mutants([mutant_type], DECODING_TYPES)
+    plot_mutant_gap_gene(mutant_type)
+    plot_decoding_maps_mutants([mutant_type], DECODING_TYPES)
     ##binned over positions
-
     # reconstructions
-
     #aggregated results
     plot_position_uncertainty_decoding_comparison_mutants(mutant_type)
 
@@ -540,7 +538,7 @@ def plot_prediction_loss_weighted_by_expression_variance_mutant(mutant_type, sc_
     #                     np.mean(sc_pr_pred_err, axis=(1, 0)),
     #                     np.std(np.mean(sc_pr_pred_err, axis=1), axis=0), PAIR_RULE_GENES, mutant_type,
     #                     label_axes=label_axes, x_label=x_label, y_label=y_label)
-    #std_pr_gene_per_pos = np.std(full_mutant_pr_data, axis=0)[1:-1, :]
+    # std_pr_gene_per_pos = np.std(full_mutant_pr_data, axis=0)[1:-1, :]
     results, all_results = compare_expression_correlations(mutant_type, wn_pr_pred, sc_pr_pred[:,1:-1,:])
     plot_bar_comparison([results['Eve']['mean_Correlation_wn'], results['Run']['mean_Correlation_wn'], results['Prd']['mean_Correlation_wn']],
                         [results['Eve']['std_Correlation_wn'], results['Run']['std_Correlation_wn'], results['Prd']['std_Correlation_wn']],

@@ -83,7 +83,7 @@ class TestResults(ABC):
         return prediction_distance
 
     def save(self, savedir):
-        filename = os.path.join(savedir, f"{self.test_type}_{'_'.join(self.decoding_genes)}_cell_res.pkl")
+        filename = os.path.join(savedir, f"{self.test_type}_{'_'.join(self.decoding_genes)}.pkl")
         with open(filename, 'wb') as file:
             pickle.dump(self, file)
 

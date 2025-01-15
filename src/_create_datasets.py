@@ -20,7 +20,7 @@ def calculate_wt_droso_decoding_maps_one_gene_group(encode_genes):
 
 def calculate_all_gene_subset_decoding_maps_WT():
     gap_genes_subsets = get_all_gap_gene_subsets_list()
-    wt_droso = WildTypeDrosophilaData(training=True, edge_trim=None)
+    wt_droso = WildTypeDrosophilaData(training=True, edge_trim=EDGE_TRIM)
     test_data = load_wt_gap_test_data()
     for gap_genes_subset in gap_genes_subsets:
         print(gap_genes_subset)

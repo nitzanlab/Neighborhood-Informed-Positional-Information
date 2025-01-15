@@ -33,8 +33,8 @@ class WildTypeDrosophilaData(Data):
         #all_training_data, training_meta_data = load_all_wt_droso_train_data()
         #self.meta_data = training_meta_data
 
-        #all_training_data,_ = load_all_wt_droso_train_data()
-        all_training_data = load_wt_gap_test_data()
+        all_training_data,_ = load_all_wt_droso_train_data()
+        #all_training_data = load_wt_gap_test_data()
         self.meta_data = ''
         self.define_data_structures(all_training_data)
 
@@ -112,8 +112,8 @@ class WildTypeDrosophilaData(Data):
     def train_wn(self, decoding_genes):
         decoding_genes_idx = self.get_decode_genes_idx(decoding_genes)
         train_data_wn = self.reshape_data_for_wn(self.train_data[:,:, decoding_genes_idx])
-        self.learn_mean_wn(train_data_wn, decoding_genes_idx)
-        self.learn_covariance_wn(train_data_wn, decoding_genes_idx)
+        self.learn_mean_wn(train_data_wn)#, decoding_genes_idx)
+        self.learn_covariance_wn(train_data_wn)#, decoding_genes_idx)
 
     def plot_gene_exp_over_positions(self, decoding_genes):
         decoding_genes_idx = self.get_decode_genes_idx(decoding_genes)
