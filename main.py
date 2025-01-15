@@ -21,12 +21,15 @@ def plot_all_figures():
 
 if __name__ == '__main__':
     set_style()
-    plot_all_figures()
+
+    calculate_all_gene_subset_decoding_maps_WT()
+
+    #plot_all_figures()
     # for mutant_type in ONE_MUTATION_TYPES:
     #     print(mutant_type)
-    #     plot_mutant_pr_predictions_and_errors(mutant_type, plot_binned_position_errors=True)
+    #     plot_mutant_pr_predictions_and_errors(mutant_type, plot_binned_position_errors=False)
     #plot_one_mutation_expression_correlation()
     # for mutant_type in MUTANT_TYPES:
     #     print(mutant_type)
     #     plot_decoding_map_uncertainty_mutants_binned_positions(mutant_type)
-    #     #plot_all_mutant_results(mutant_type)
+        #plot_all_mutant_results(mutant_type)

@@ -4,15 +4,20 @@ import os
 """
 Directories:
 """
-HOME = "C:/Users/micha/thesis/code/data/position_decoding/drosophila_gregor_optimal_decoding/Data/Gap/"
+#HOME = "C:/Users/micha/thesis/code/data/position_decoding/drosophila_gregor_optimal_decoding/Data/Gap/"
 
-#HOME_DIR = r'C:\Users\micha\Neighborhood_Informed_PD'
-WHERE = HOME
+HOME_DIR = r'C:\Users\micha\Neighborhood_Informed_PD'
+WHERE = os.path.join(os.path.join(HOME_DIR,'Drosophila_Data'),'Gap')
 
-DROSO_DATA_DIR_PATH = r'C:\Users\micha\thesis\code\data\position_decoding\drosophila_gregor_optimal_decoding\Data'
+#DROSO_DATA_DIR_PATH = r'C:\Users\micha\thesis\code\data\position_decoding\drosophila_gregor_optimal_decoding\Data'
 
-WT_GAP_GENE_DATA_DIR = r'C:\Users\micha\thesis\code\data\position_decoding\drosophila_gregor_optimal_decoding\Data\wt_training_data'
-DROSO_RES_DIR = r'C:\Users\micha\thesis\code\data\position_decoding\drosophila_gregor_optimal_decoding\Results\all_results'
+#WT_GAP_GENE_DATA_DIR = r'C:\Users\micha\thesis\code\data\position_decoding\drosophila_gregor_optimal_decoding\Data\wt_training_data'
+
+#DROSO_RES_DIR = r'C:\Users\micha\thesis\code\data\position_decoding\drosophila_gregor_optimal_decoding\Results\all_results'
+
+DROSO_RES_DIR = os.path.join(HOME_DIR, 'Droso_Res')
+DROSO_DATA_DIR_PATH = os.path.join(HOME_DIR, 'Drosophila_Data')
+
 
 
 MUTANT_PAIR_RULE_DIR_PATH = os.path.join(DROSO_DATA_DIR_PATH, 'Pair_rule\pair_rule_data_raw_dorsal_')

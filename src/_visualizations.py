@@ -380,7 +380,7 @@ def plot_all_mutant_results(mutant_type):
 
 def plot_posterior_standard_deviation_comparison(wn_stds, sc_stds):
     labels = ['neighborhood\n informed', 'cell\n independent']
-    data = [wn_stds.flatten(), sc_stds.flatten()]  # Flatten to combine all samples
+    data = [np.log(wn_stds).flatten(), np.log(sc_stds).flatten()]  # Flatten to combine all samples
 
     # Create the figure and axes
     fig, ax = plt.subplots()
@@ -404,19 +404,18 @@ def plot_posterior_standard_deviation_comparison(wn_stds, sc_stds):
     # Add labels and title
     ax.set_xticks([1, 2])
     ax.set_xticklabels(labels)
-    ax.set_ylabel('Posterior Standard Deviation')
+    ax.set_ylabel('Posterior Log Variance')
 
     # Add a legend
     legend_patches = [
         Patch(facecolor=DECODER_TYPE_COLOR['wn'], edgecolor='black', label='Neighborhood Informed'),
         Patch(facecolor=DECODER_TYPE_COLOR['sc'], edgecolor='black', label='Cell Independent')
     ]
-    ax.legend(handles=legend_patches, loc='upper right')
+    ax.legend(handles=legend_patches, loc='lower right')
 
     plt.tight_layout()
 
     # Show the plot
-    plt.ylim(0,200)
     plt.show()
 
 def plot_decoding_map_uncertainty_mutants_binned_positions(mutant_type):
@@ -560,6 +559,6 @@ def plot_mutant_pr_predictions_and_errors(mutant_type, plot_binned_position_erro
     mean_exp_mutant_pr_per_position = np.mean(full_mutant_pr_data, axis=0)
 
     sc_weighted_pr_err, wn_weighted_pr_err = calculate_mutant_pr_pred_err(mutant_type, sc_pr_pred, wn_pr_pred, mean_exp_mutant_pr_per_position)
-    #plot_predicted_prs_across_positions(wn_pr_pred, sc_pr_pred[:, 1:-1, :], full_mutant_pr_data[:, 1:-1, :])
+    plot_predicted_prs_across_positions(wn_pr_pred, sc_pr_pred[:, 1:-1, :], full_mutant_pr_data[:, 1:-1, :])
     if plot_binned_position_errors:
         plot_error_pr_error_per_position(sc_weighted_pr_err, wn_weighted_pr_err)

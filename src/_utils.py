@@ -150,5 +150,5 @@ def get_std_per_position_decoding_map(decoding_map):
     actual_positions = np.arange(decoding_map.shape[1]).reshape(1, -1, 1)
     expected_positions = np.sum(decoding_map * actual_positions, axis=1)
     variance = np.sum(decoding_map * (actual_positions - expected_positions[:, None, :]) ** 2, axis=1)
-    std_dev = np.sqrt(variance)
-    return std_dev
+    #std_dev = np.sqrt(variance)
+    return variance

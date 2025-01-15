@@ -1,5 +1,5 @@
 from data.WildTypeDrosophila import *
-from data.TestResults import *
+from test_results_analysis.TestResults import *
 from src._utils import *
 
 def calculate_wt_droso_decoding_maps_one_gene_group(encode_genes):
