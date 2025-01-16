@@ -45,6 +45,7 @@ class TestResults(ABC):
         plt.imshow(np.mean(np.log(self.raw_test_results + (1e-6 * np.ones_like(self.raw_test_results))), axis=0),
                    cmap='Greys',
                    origin='lower', vmax=vmax, vmin=-12)
+
         colorbar = plt.colorbar()
         colorbar.set_label(''
                            ''

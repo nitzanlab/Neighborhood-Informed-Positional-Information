@@ -33,8 +33,8 @@ class WildTypeDrosophilaData(Data):
         #all_training_data, training_meta_data = load_all_wt_droso_train_data()
         #self.meta_data = training_meta_data
 
-        all_training_data,_ = load_all_wt_droso_train_data()
-        #all_training_data = load_wt_gap_test_data()
+        #all_training_data,_ = load_all_wt_droso_train_data()
+        all_training_data = load_wt_gap_test_data()
         self.meta_data = ''
         self.define_data_structures(all_training_data)
 

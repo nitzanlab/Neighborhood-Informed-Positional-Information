@@ -1,6 +1,8 @@
 """
 Figure 1 visuals
 """
+import matplotlib.pyplot as plt
+
 from src._imports import *
 from src._constants import *
 from data._preprocessing import *
@@ -111,6 +113,10 @@ def plot_decoding_maps_comparison_wt(genes:list, vmaxs, xlim):
     wt_droso.plot_gene_exp_over_positions(genes)
     plot_decoding_maps([genes], WT_DECODE_TYPES,vmaxs, xlim)
 
+def plot_all_decoding_maps_comparison_wt():
+    for gene_subset in [['Kr'],['Kr','Hb'],['Kr','Gt','Hb'],GAP_GENES]:
+        print(gene_subset)
+        plot_decoding_maps([gene_subset], WT_DECODE_TYPES,VMAXS_THREE_GENES, xlim=False)
 
 def plot_decoding_maps(genes_subset_list, types, vmaxs, xlim):
     for i,gene_subset in enumerate(genes_subset_list):
@@ -354,13 +360,13 @@ def plot_error_pr_error_per_position(sc_weighted_pr_err_std, wn_weighted_pr_err_
 
 ####################### mutant background embryo analyses related functions ##############################
 def plot_all_mutant_results(mutant_type):
-    plot_mutant_gap_gene(mutant_type)
-    plot_decoding_maps_mutants([mutant_type], DECODING_TYPES)
+    #plot_mutant_gap_gene(mutant_type)
+    #plot_decoding_maps_mutants([mutant_type], DECODING_TYPES)
     ##binned over positions
     # reconstructions
     #aggregated results
-    plot_position_uncertainty_decoding_comparison_mutants(mutant_type)
-
+    #plot_position_uncertainty_decoding_comparison_mutants(mutant_type)
+    plot_decoding_map_uncertainty_mutants_binned_positions(mutant_type)
 # def plot_posterior_standard_deviation_comparison(wn_stds, sc_stds):
 #     labels = ['neighborhood\n informed','cell\n independent']
 #     x_positions = np.arange(len(labels))  # [0, 1] for 2 bars
@@ -378,8 +384,18 @@ def plot_all_mutant_results(mutant_type):
 
 def plot_posterior_standard_deviation_comparison(wn_stds, sc_stds):
     labels = ['neighborhood\n informed', 'cell\n independent']
-    data = [np.log(wn_stds).flatten(), np.log(sc_stds).flatten()]  # Flatten to combine all samples
+    data = [wn_stds.flatten(), sc_stds.flatten()]  # Flatten to combine all samples
 
+    print(f'wn mean: {np.mean(data[0])} sc mean: {np.mean(data[1])}')
+    # t_stat, p_value = ttest_ind(wn_stds, sc_stds, equal_var=False)
+    # plt.scatter(np.arange(len(p_value)), p_value)
+    # plt.title('pvals')
+    #
+    # plt.show()
+
+    t_stat, p_value = ttest_ind(wn_stds.flatten(), sc_stds.flatten(), equal_var=False)
+
+    print(f't_stat: {t_stat}, p_value {p_value}')
     # Create the figure and axes
     fig, ax = plt.subplots()
 
@@ -402,18 +418,72 @@ def plot_posterior_standard_deviation_comparison(wn_stds, sc_stds):
     # Add labels and title
     ax.set_xticks([1, 2])
     ax.set_xticklabels(labels)
-    ax.set_ylabel('Posterior Log Variance')
+    ax.set_ylabel('Posterior Standard Deviation')
 
     # Add a legend
     legend_patches = [
         Patch(facecolor=DECODER_TYPE_COLOR['wn'], edgecolor='black', label='Neighborhood Informed'),
         Patch(facecolor=DECODER_TYPE_COLOR['sc'], edgecolor='black', label='Cell Independent')
     ]
-    ax.legend(handles=legend_patches, loc='lower right')
+    ax.legend(handles=legend_patches, loc='upper center')
 
     plt.tight_layout()
-
+    # plt.ylim(0,0.06)
     # Show the plot
+    plt.show()
+
+def plot_posterior_standard_deviation_comparison_wt():
+    wn_map = TestResults.from_pickle(DROSO_RES_DIR, 'wn_wt', GAP_GENES)
+    sc_map = TestResults.from_pickle(DROSO_RES_DIR, 'sc_wt', GAP_GENES)
+    wn_stds = get_std_per_position_decoding_map(wn_map.normalized_decoding_map)
+    sc_stds = get_std_per_position_decoding_map(sc_map.normalized_decoding_map)[:, 1:-1]
+
+    mean_wn_stds = np.mean(wn_stds, axis=0)
+    std_wn_stds = np.std(wn_stds, axis=0)
+
+    mean_sc_stds = np.mean(sc_stds, axis=0)
+    std_sc_stds = np.std(sc_stds, axis=0)
+
+    positions = np.linspace(POSITIONS_START, POSITIONS_END, len(mean_sc_stds))
+
+    plt.plot(positions, mean_sc_stds, label=DECODER_NAMES['sc'], color=DECODER_TYPE_COLOR['sc'])
+    plt.plot(positions, mean_wn_stds, label=DECODER_NAMES['wn'], color=DECODER_TYPE_COLOR['wn'])
+
+    plt.fill_between(positions, mean_sc_stds - std_sc_stds, mean_sc_stds + std_sc_stds, color=DECODER_TYPE_COLOR['sc'],
+                     alpha=0.5)
+    plt.fill_between(positions, mean_wn_stds - std_wn_stds, mean_wn_stds + std_wn_stds, color=DECODER_TYPE_COLOR['wn'],
+                     alpha=0.5)
+    plt.xlabel(POSITION_X_LABEL)
+    plt.ylabel('posterior standard deviation')
+    plt.ylim(0,0.05)
+    plt.tight_layout()
+    plt.show()
+
+def plot_posterior_standard_deviation_comparison_mutants(mutant_type):
+    wn_map = TestResults.from_pickle(DROSO_RES_DIR, f'{mutant_type}_wn', GAP_GENES)
+    sc_map = TestResults.from_pickle(DROSO_RES_DIR, f'{mutant_type}_sc', GAP_GENES)
+    wn_stds = get_std_per_position_decoding_map(wn_map.normalized_decoding_map)
+    sc_stds = get_std_per_position_decoding_map(sc_map.normalized_decoding_map)[:, 1:-1]
+
+    mean_wn_stds = np.mean(wn_stds, axis=0)
+    std_wn_stds = np.std(wn_stds, axis=0)
+
+    mean_sc_stds = np.mean(sc_stds, axis=0)
+    std_sc_stds = np.std(sc_stds, axis=0)
+
+    positions = np.linspace(POSITIONS_START, POSITIONS_END, len(mean_sc_stds))
+
+    plt.plot(positions, mean_sc_stds, label=DECODER_NAMES['sc'], color=DECODER_TYPE_COLOR['sc'])
+    plt.plot(positions, mean_wn_stds, label=DECODER_NAMES['wn'], color=DECODER_TYPE_COLOR['wn'])
+
+    plt.fill_between(positions, mean_sc_stds - std_sc_stds, mean_sc_stds + std_sc_stds, color=DECODER_TYPE_COLOR['sc'],
+                     alpha=0.5)
+    plt.fill_between(positions, mean_wn_stds - std_wn_stds, mean_wn_stds + std_wn_stds, color=DECODER_TYPE_COLOR['wn'],
+                     alpha=0.5)
+    plt.xlabel(POSITION_X_LABEL)
+    plt.ylabel('posterior standard deviation')
+    plt.ylim(0,0.05)
+    plt.tight_layout()
     plt.show()
 
 def plot_decoding_map_uncertainty_mutants_binned_positions(mutant_type):
@@ -424,37 +494,37 @@ def plot_decoding_map_uncertainty_mutants_binned_positions(mutant_type):
     plot_posterior_standard_deviation_comparison(wn_stds, sc_stds)
 
 
-    # width = 0.4
-    # bin_size = 50
-    # num_bins = wn_stds.shape[1] // bin_size
-    # positions = np.arange(num_bins)
-    # wn_agg = [
-    #     wn_stds[:,i * bin_size:(i + 1) * bin_size].flatten()
-    #     for i in range(num_bins)
-    # ]
-    #
-    # sc_agg = [
-    #     sc_stds[:, i * bin_size:(i + 1) * bin_size].flatten()
-    #     for i in range(num_bins)
-    # ]
-    #
-    # box1 = plt.boxplot(wn_agg, positions=positions - width / 2, widths=width, patch_artist=True,
-    #                    boxprops=dict(facecolor=DECODER_TYPE_COLOR['wn']), showfliers=False)
-    # box2 = plt.boxplot(sc_agg, positions=positions + width / 2, widths=width, patch_artist=True,
-    #                    boxprops=dict(facecolor=DECODER_TYPE_COLOR['sc']), showfliers=False)
-    #
-    # plt.xlabel("binned positions")
-    # plt.ylabel("posterior standard deviation")
-    # plt.xticks(positions, np.arange(num_bins))
-    # plt.legend([box1["boxes"][0], box2["boxes"][0]],
-    #            [DECODER_NAMES['wn'], DECODER_NAMES['sc']],
-    #            loc="upper right")
-    # plt.grid(axis='y', linestyle='--', alpha=0.7)
-    # plt.tight_layout()
-    # #plt.ylim(0, 30)
-    # # Show the plot
-    # plt.tight_layout()
-    # plt.show()
+    width = 0.4
+    bin_size = 50
+    num_bins = wn_stds.shape[1] // bin_size
+    positions = np.arange(num_bins)
+    wn_agg = [
+        wn_stds[:,i * bin_size:(i + 1) * bin_size].flatten()
+        for i in range(num_bins)
+    ]
+
+    sc_agg = [
+        sc_stds[:, i * bin_size:(i + 1) * bin_size].flatten()
+        for i in range(num_bins)
+    ]
+
+    box1 = plt.boxplot(wn_agg, positions=positions - width / 2, widths=width, patch_artist=True,
+                       boxprops=dict(facecolor=DECODER_TYPE_COLOR['wn']), showfliers=False)
+    box2 = plt.boxplot(sc_agg, positions=positions + width / 2, widths=width, patch_artist=True,
+                       boxprops=dict(facecolor=DECODER_TYPE_COLOR['sc']), showfliers=False)
+
+    plt.xlabel("binned positions")
+    plt.ylabel("posterior standard deviation")
+    plt.xticks(positions, np.arange(num_bins))
+    plt.legend([box1["boxes"][0], box2["boxes"][0]],
+               [DECODER_NAMES['wn'], DECODER_NAMES['sc']],
+               loc="upper right")
+    plt.grid(axis='y', linestyle='--', alpha=0.7)
+    plt.tight_layout()
+    #plt.ylim(0, 30)
+    # Show the plot
+    plt.tight_layout()
+    plt.show()
 
 
 
@@ -529,24 +599,33 @@ def plot_prediction_loss_weighted_by_expression_variance_mutant(mutant_type, sc_
                                         / (np.max(mean_exp_mutant_pr_per_position, axis=0) - np.min(
                 mean_exp_mutant_pr_per_position, axis=0)))
 
-
     sc_pr_pred = sc_map.expected_pr_exp(mean_wt_pr_exp)
     wn_pr_pred = wn_map.expected_pr_exp(mean_wt_pr_exp[1:-1, :])
 
-    # plot_bar_comparison(np.mean(wn_pr_pred_err, axis=(1, 0)),
-    #                     np.std(np.mean(wn_pr_pred_err, axis=1), axis=0),
-    #                     np.mean(sc_pr_pred_err, axis=(1, 0)),
-    #                     np.std(np.mean(sc_pr_pred_err, axis=1), axis=0), PAIR_RULE_GENES, mutant_type,
-    #                     label_axes=label_axes, x_label=x_label, y_label=y_label)
-    # std_pr_gene_per_pos = np.std(full_mutant_pr_data, axis=0)[1:-1, :]
-    results, all_results = compare_expression_correlations(mutant_type, wn_pr_pred, sc_pr_pred[:,1:-1,:])
-    plot_bar_comparison([results['Eve']['mean_Correlation_wn'], results['Run']['mean_Correlation_wn'], results['Prd']['mean_Correlation_wn']],
-                        [results['Eve']['std_Correlation_wn'], results['Run']['std_Correlation_wn'], results['Prd']['std_Correlation_wn']],
-                        [results['Eve']['mean_Correlation_sc'], results['Run']['mean_Correlation_sc'], results['Prd']['mean_Correlation_sc']],
-                        [results['Eve']['std_Correlation_sc'], results['Run']['std_Correlation_sc'],
-                         results['Prd']['std_Correlation_sc']],PAIR_RULE_GENES, mutant_type,
-                        label_axes=label_axes, x_label=x_label, y_label='expression correlations')
-    return results
+    sc_pr_pred_err = pr_prediction_err(sc_pr_pred, mean_exp_mutant_per_positions_normed)[:, 1:-1, :]
+    wn_pr_pred_err = pr_prediction_err(wn_pr_pred, mean_exp_mutant_per_positions_normed[1:-1, :])
+
+    wt_pr_exp = get_wt_pr_data()
+    wt_pr_arr = reformat_exp_data_to_arr(wt_pr_exp, EDGE_TRIM)
+    std_pr_gene_per_pos = np.std(wt_pr_arr, axis=0)[1:-1, :]
+
+    sc_weighted_pr_err = (sc_pr_pred_err / std_pr_gene_per_pos)
+    wn_weighted_pr_err = (wn_pr_pred_err / std_pr_gene_per_pos)
+
+    plot_bar_comparison(np.mean(wn_weighted_pr_err, axis=(1, 0)),
+                        np.std(np.mean(wn_weighted_pr_err, axis=1), axis=0),
+                        np.mean(sc_weighted_pr_err, axis=(1, 0)),
+                        np.std(np.mean(sc_weighted_pr_err, axis=1), axis=0), PAIR_RULE_GENES, mutant_type,
+                        label_axes=label_axes, x_label=x_label, y_label=y_label)
+    #std_pr_gene_per_pos = np.std(full_mutant_pr_data, axis=0)[1:-1, :]
+    # results, all_results = compare_expression_correlations(mutant_type, wn_pr_pred, sc_pr_pred[:,1:-1,:])
+    # plot_bar_comparison([results['Eve']['mean_Correlation_wn'], results['Run']['mean_Correlation_wn'], results['Prd']['mean_Correlation_wn']],
+    #                     [results['Eve']['std_Correlation_wn'], results['Run']['std_Correlation_wn'], results['Prd']['std_Correlation_wn']],
+    #                     [results['Eve']['mean_Correlation_sc'], results['Run']['mean_Correlation_sc'], results['Prd']['mean_Correlation_sc']],
+    #                     [results['Eve']['std_Correlation_sc'], results['Run']['std_Correlation_sc'],
+    #                      results['Prd']['std_Correlation_sc']],PAIR_RULE_GENES, mutant_type,
+    #                     label_axes=label_axes, x_label=x_label, y_label='expression correlations')
+   # return results
 
 
 def plot_mutant_pr_predictions_and_errors(mutant_type, plot_binned_position_errors=False):

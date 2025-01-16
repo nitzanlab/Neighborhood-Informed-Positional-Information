@@ -13,3 +13,4 @@ from matplotlib.ticker import MaxNLocator
 
 from scipy.ndimage import gaussian_filter1d
 from matplotlib.patches import Patch
+from scipy.stats import ttest_ind, shapiro

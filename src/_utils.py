@@ -147,8 +147,9 @@ def calculate_mutant_pr_pred_err(mutant_type, sc_pr_pred, wn_pr_pred,mean_exp_mu
 
 def get_std_per_position_decoding_map(decoding_map):
     num_embryos = decoding_map.shape[0]
-    actual_positions = np.arange(decoding_map.shape[1]).reshape(1, -1, 1)
+    #actual_positions = np.arange(decoding_map.shape[1]).reshape(1, -1, 1)
+    actual_positions = np.linspace(POSITIONS_START, POSITIONS_END, decoding_map.shape[1]).reshape(1, -1, 1)
     expected_positions = np.sum(decoding_map * actual_positions, axis=1)
     variance = np.sum(decoding_map * (actual_positions - expected_positions[:, None, :]) ** 2, axis=1)
-    #std_dev = np.sqrt(variance)
-    return variance
+    std_dev = np.sqrt(variance)
+    return std_dev
