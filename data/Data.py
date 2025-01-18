@@ -18,44 +18,81 @@ class Data(ABC):
         pass
 
     def get_decode_genes_idx(self, decoding_genes):
+        """
+        This function returns the corresponding decoding genes to the gene indices given
+        """
         decoding_genes_idx = [self.genes.get(decoding_gene) for decoding_gene in decoding_genes]
         return decoding_genes_idx
 
     @abstractmethod
     def train_wn(self, decode_genes=None):
+        """
+        This function trains the neighborhood-informed position decoder
+        """
         pass
 
     @abstractmethod
     def reshape_data_for_wn(self):
+        """
+        This function reshapes the data for the neighborhood-informed position decoder
+        """
         pass
 
     @abstractmethod
     def learn_mean_wn(self, train_data_wn=None, decoding_genes_idx=None):
+        """
+        This function learns the mean expression of each gap gene across the AP axis
+        for the neighborhood-informed decoder
+        """
         pass
 
     @abstractmethod
     def learn_covariance_wn(self, train_data_wn=None, decoding_genes_idx=None):
+        """
+        This function learns the covariance in expression of the gap genes across position for
+        the neighborhood- informed decoding.
+        """
         pass
     @abstractmethod
     def train_sc(self, decoding_genes):
+        """
+        This function trains the cell-independent decoder
+        """
         pass
 
     @abstractmethod
     def learn_mean_sc(self, decoding_genes_idx=None):
+        """
+        This function learns the mean expression profiles over the positions
+        used for the cell-independent decoder
+        """
         pass
     @abstractmethod
     def learn_covariance_sc(self, decoding_genes_idx=None):
+        """
+        This function learns the covariance of the gap gene expression over positions
+        for the cell-independent decoder
+        """
         pass
 
     @abstractmethod
     def test_wn(self, test_data, decoding_genes=None):
+        """
+        This function predicts the position prediction over positions given the test data
+        """
         self.preprocess_data_for_testing_with_neighbors(test_data)
         self.get_position_distribution(test_data)
 
     def test_sc(self, test_data, decoding_genes=None):
+        """
+        This function predicts the position decoder over positions given the test data
+        """
         self.get_position_distribution(test_data, self.means_sc, self.std_sc)
 
     def get_log_likelihood(self,x_s, means, covs):
+        """
+        This function measures the log likelihood distribution of p(g(x)|\hat{x})
+        """
         all_pdfs = []
         for mean, cov in zip(means, covs):
             if isinstance(cov, (int, float)):
@@ -67,7 +104,10 @@ class Data(ABC):
         return all_pdfs
 
     def get_posterior(self, log_likelihood):
-        p_x_given_gia = (np.exp(log_likelihood))  # TODO now each column is p(x|gia)
+        """
+        This function measures the posterior distribution over positions P(\hat{x}|g(x))
+        """
+        p_x_given_gia = (np.exp(log_likelihood))
         num_positions = p_x_given_gia.shape[0]
         if p_x_given_gia.ndim==1:
             num_positions = len(p_x_given_gia)
@@ -81,6 +121,9 @@ class Data(ABC):
         return normed_posterior
 
     def get_position_distribution(self, test_data, means, covs):
+        """
+        This function measures the posterior distribution for each of the embryos over each positions
+        """
         all_maps = []
         num_samples = test_data.shape[0]
         for sample_idx in range(num_samples):

@@ -5,7 +5,7 @@ from src._constants import *
 
 def load_data(addr, non_genes_list, genes):
     """
-    This function loads the drosophilia data
+    This function loads the Drosophila data
     :param addr: a string representing the address in the directory
     :return: panda dataframe of the data
     """
@@ -28,13 +28,16 @@ def load_data(addr, non_genes_list, genes):
     df = pd.concat([df1, df2], axis=1)
     return df
 
-def reformat_exp_data_to_arr(data, edge_trim=None):
-    data_arr = np.array(data.values.tolist()).transpose(0, 2, 1)
-    if edge_trim is not None:
-        data_arr = data_arr[:, edge_trim:-edge_trim, :]
-    return data_arr
+# def reformat_exp_data_to_arr(data, edge_trim=None):
+#     data_arr = np.array(data.values.tolist()).transpose(0, 2, 1)
+#     if edge_trim is not None:
+#         data_arr = data_arr[:, edge_trim:-edge_trim, :]
+#     return data_arr
 
 def get_normalized_decode_data(file_names, non_genes_list, genes, low_time=LOW_TIME, upper_time=UPPER_TIME):
+    """
+    This function normalizes the decode data
+    """
     loaded_data = load_data(file_names[0], non_genes_list, genes)
     data_time_filtered = time_filter_data(loaded_data, genes, low_time,upper_time)
     min_mean_exp, max_mean_exp = min_and_max_mean_gene_expression(data_time_filtered,genes)
@@ -65,6 +68,9 @@ def min_and_max_mean_gene_expression(data, genes):
     return np.min(mean_exps, axis=0), np.max(mean_exps, axis=0)  # have embyros Xnum_genes, want per column min and max value
 
 def get_mean(data, num_genes, genes):
+    """
+    This function returns the mean expression across the positions
+    """
     gene_means_across_locations = pd.DataFrame(0, index=np.arange(
         len(data[genes[0]].iloc[0])),
                                                columns=genes)  # means[0] is num of genes on number of positions , we want num of positions shape

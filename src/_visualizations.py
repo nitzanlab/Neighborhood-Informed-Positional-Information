@@ -82,11 +82,60 @@ def pairwise_correlation_pair_rule_genes():
     return np.array(all_genes_corrs)
 
 ### figure 1d, position information in bits panel
+def plot_positional_information_in_bits_empirical_std(wn_stds, sc_stds):
+    positions = np.linspace(0.1, 0.9, sc_stds.shape[1])
+
+    plt.plot(positions, np.log2(N) * np.ones_like(positions), color='gray', linestyle='--',
+             label='Unique cell specification')
+    plt.fill_between(x=positions, y1=np.log2(N + N_STD), y2=np.log2(N - N_STD), color='gray', alpha=0.5)
+
+    mean_pos_inf_sc = np.mean(calculate_positional_inf(sc_stds), axis=0)
+    mean_pos_inf_wn = np.mean(calculate_positional_inf(wn_stds), axis=0)
+    std_pos_inf_sc = np.std(calculate_positional_inf(sc_stds), axis=0)
+    std_pos_inf_wn = np.std(calculate_positional_inf(wn_stds), axis=0)
+    plt.plot(positions, mean_pos_inf_sc, label=DECODER_NAMES['sc'], color=DECODER_TYPE_COLOR['sc'])
+    plt.plot(positions, mean_pos_inf_wn, label=DECODER_NAMES['wn'], color=DECODER_TYPE_COLOR['wn'])
+    plt.fill_between(positions, mean_pos_inf_sc + std_pos_inf_sc, mean_pos_inf_sc - std_pos_inf_sc,
+                     color=DECODER_TYPE_COLOR['sc'], alpha=0.3)
+    plt.fill_between(positions, mean_pos_inf_wn + std_pos_inf_wn,
+                     mean_pos_inf_wn - std_pos_inf_wn, color=DECODER_TYPE_COLOR['wn'], alpha=0.3)
+
+    plt.legend(loc='lower right')
+    plt.xlabel(POSITION_X_LABEL)
+    plt.ylabel('positional information in bits')
+    plt.ylim(0, 10)
+    plt.xlim(0.1, 0.9)
+    plt.tight_layout()
+    plt.show()
+
+
 def plot_positional_information_in_bits():
     sigma_x_wn = caclulate_positional_error_per_decoding_map_MAP_positions(f'wn_wt')  # vs 'wn'
     sigma_x_sc = caclulate_positional_error_per_decoding_map_MAP_positions(f'sc_wt')
-    positions = np.linspace(0.1, 0.9, sigma_x_sc.shape[1])
 
+
+    mean_wn_stds = np.mean(sigma_x_wn, axis=0)
+    std_wn_stds = np.std(sigma_x_wn, axis=0)
+
+    mean_sc_stds = np.mean(sigma_x_sc, axis=0)[1:-1]
+    std_sc_stds = np.std(sigma_x_sc, axis=0)[1:-1]
+
+    positions = np.linspace(POSITIONS_START, POSITIONS_END, len(mean_sc_stds))
+
+    plt.plot(positions, mean_sc_stds, label=DECODER_NAMES['sc'], color=DECODER_TYPE_COLOR['sc'])
+    plt.plot(positions, mean_wn_stds, label=DECODER_NAMES['wn'], color=DECODER_TYPE_COLOR['wn'])
+
+    plt.fill_between(positions, mean_sc_stds - std_sc_stds, mean_sc_stds + std_sc_stds, color=DECODER_TYPE_COLOR['sc'],
+                     alpha=0.5)
+    plt.fill_between(positions, mean_wn_stds - std_wn_stds, mean_wn_stds + std_wn_stds, color=DECODER_TYPE_COLOR['wn'],
+                     alpha=0.5)
+    plt.xlabel(POSITION_X_LABEL)
+    plt.ylabel('posterior standard deviation')
+    plt.ylim(0, 0.05)
+    plt.tight_layout()
+    plt.show()
+
+    positions = np.linspace(0.1, 0.9, sigma_x_sc.shape[1])
     plt.plot(positions,np.log2(N)*np.ones_like(positions), color='gray', linestyle='--', label='Unique cell specification')
     plt.fill_between(x=positions,y1=np.log2(N+N_STD), y2=np.log2(N-N_STD),  color='gray', alpha=0.5)
 
@@ -438,6 +487,8 @@ def plot_posterior_standard_deviation_comparison_wt():
     wn_stds = get_std_per_position_decoding_map(wn_map.normalized_decoding_map)
     sc_stds = get_std_per_position_decoding_map(sc_map.normalized_decoding_map)[:, 1:-1]
 
+    plot_positional_information_in_bits_empirical_std(wn_stds, sc_stds)
+
     mean_wn_stds = np.mean(wn_stds, axis=0)
     std_wn_stds = np.std(wn_stds, axis=0)
 
@@ -492,7 +543,7 @@ def plot_decoding_map_uncertainty_mutants_binned_positions(mutant_type):
     wn_stds = get_std_per_position_decoding_map(wn_map.normalized_decoding_map)
     sc_stds= get_std_per_position_decoding_map(sc_map.normalized_decoding_map)[:,1:-1]
     plot_posterior_standard_deviation_comparison(wn_stds, sc_stds)
-
+    plot_positional_information_in_bits()
 
     width = 0.4
     bin_size = 50
@@ -639,3 +690,34 @@ def plot_mutant_pr_predictions_and_errors(mutant_type, plot_binned_position_erro
     plot_predicted_prs_across_positions(wn_pr_pred, sc_pr_pred[:, 1:-1, :], full_mutant_pr_data[:, 1:-1, :])
     if plot_binned_position_errors:
         plot_error_pr_error_per_position(sc_weighted_pr_err, wn_weighted_pr_err)
+
+def plot_mutant_pr_exp(mutant_type='osk'):
+    mutant_pr = get_mutant_pr_data(mutant_type)
+    mutant_pr_arr = reformat_exp_data_to_arr(mutant_pr)[:, EDGE_TRIM:-EDGE_TRIM, :]
+    plot_pr_exp(mutant_pr_arr)
+
+def plot_wt_pr_exp():
+    wt_pr = get_wt_pr_data()
+    wt_pr_arr = reformat_exp_data_to_arr(wt_pr, EDGE_TRIM)
+    plot_pr_exp(wt_pr_arr)
+
+def plot_pr_exp(pr_arr):
+    min_vals = np.min(pr_arr, axis=1, keepdims=True)  # Shape: (num_samples, 1, num_features)
+    max_vals = np.max(pr_arr, axis=1, keepdims=True)  # Shape: (num_samples, 1, num_features)
+
+    mutant_pr_arr_normed = (pr_arr - min_vals) / (max_vals - min_vals)
+    mean_pr_exp_per_gene = np.mean(mutant_pr_arr_normed, axis=0)
+    std_pr_exp_per_gene = np.std(mutant_pr_arr_normed, axis=0)
+    positions = np.linspace(POSITIONS_START, POSITIONS_END, std_pr_exp_per_gene.shape[0])
+    for i, gene in enumerate(PAIR_RULE_GENES):
+        mean_per_pos_one_gene = mean_pr_exp_per_gene[:, i]
+        std_per_pos_one_gene = std_pr_exp_per_gene[:, i]
+        plt.plot(positions, mean_per_pos_one_gene, color=PAIR_RULE_COLORS[gene])
+        plt.fill_between(positions, mean_per_pos_one_gene - std_per_pos_one_gene,
+                         mean_per_pos_one_gene + std_per_pos_one_gene, alpha=0.5, label=gene,
+                         color=PAIR_RULE_COLORS[gene])
+        plt.xlabel(POSITION_X_LABEL)
+        plt.ylabel(EXP_Y_LABEL)
+        plt.tight_layout()
+        plt.legend()
+        plt.show()
