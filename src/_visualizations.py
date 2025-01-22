@@ -508,27 +508,13 @@ def plot_all_mutant_results(mutant_type):
     """
     This function plots all of the mutant results shown in the paper
     """
-    #plot_mutant_gap_gene(mutant_type)
-    #plot_decoding_maps_mutants([mutant_type], DECODING_TYPES)
+    plot_mutant_gap_gene(mutant_type)
+    plot_decoding_maps_mutants([mutant_type], DECODING_TYPES)
     ##binned over positions
     # reconstructions
     #aggregated results
     #plot_position_uncertainty_decoding_comparison_mutants(mutant_type)
     plot_decoding_map_uncertainty_mutants_binned_positions(mutant_type)
-# def plot_posterior_standard_deviation_comparison(wn_stds, sc_stds):
-#     labels = ['neighborhood\n informed','cell\n independent']
-#     x_positions = np.arange(len(labels))  # [0, 1] for 2 bars
-#     means = [np.mean(wn_stds,axis=(0,1)), np.mean(sc_stds, axis=(0,1))]
-#     errors = [np.std(wn_stds,axis=(0,1)), np.std(sc_stds,axis=(0,1))]
-#     # Create the bar chart
-#     plt.bar(x_positions, means, yerr=errors, capsize=5, color=[DECODER_TYPE_COLOR['wn'], DECODER_TYPE_COLOR['sc']])
-#
-#     # Add labels and title
-#     plt.xticks(x_positions, labels)
-#     plt.ylabel('Mean Value')
-#     #plt.title('Position Posterior ')
-#     plt.tight_layout()
-#     plt.show()
 
 def plot_posterior_standard_deviation_comparison(wn_stds, sc_stds):
     """
@@ -819,15 +805,7 @@ def plot_prediction_loss_weighted_by_expression_variance_mutant(mutant_type, sc_
                         np.mean(sc_weighted_pr_err, axis=(1, 0)),
                         np.std(np.mean(sc_weighted_pr_err, axis=1), axis=0), PAIR_RULE_GENES, mutant_type,
                         label_axes=label_axes, x_label=x_label, y_label=y_label)
-    #std_pr_gene_per_pos = np.std(full_mutant_pr_data, axis=0)[1:-1, :]
-    # results, all_results = compare_expression_correlations(mutant_type, wn_pr_pred, sc_pr_pred[:,1:-1,:])
-    # plot_bar_comparison([results['Eve']['mean_Correlation_wn'], results['Run']['mean_Correlation_wn'], results['Prd']['mean_Correlation_wn']],
-    #                     [results['Eve']['std_Correlation_wn'], results['Run']['std_Correlation_wn'], results['Prd']['std_Correlation_wn']],
-    #                     [results['Eve']['mean_Correlation_sc'], results['Run']['mean_Correlation_sc'], results['Prd']['mean_Correlation_sc']],
-    #                     [results['Eve']['std_Correlation_sc'], results['Run']['std_Correlation_sc'],
-    #                      results['Prd']['std_Correlation_sc']],PAIR_RULE_GENES, mutant_type,
-    #                     label_axes=label_axes, x_label=x_label, y_label='expression correlations')
-   # return results
+
 
 
 def plot_mutant_pr_predictions_and_errors(mutant_type, plot_binned_position_errors=False):

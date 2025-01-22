@@ -4,13 +4,6 @@ from data._preprocessing import *
 from data._data import *
 from data.Data import *
 
-
-# def normalize_data(data_to_normalize):
-#     min_mean_exp, max_mean_exp = min_and_max_mean_gene_expression(data_to_normalize, GAP_GENES)
-#     normalized_data = normalize_gene_exp(data_to_normalize, np.array(min_mean_exp), np.array(max_mean_exp), GAP_GENES)
-#     return normalized_data
-
-
 class WildTypeDrosophilaData(Data):
     def __init__(self, data=None, training=False, save_training=False, save_dir=None, load_dir=None, edge_trim=None):
         self.meta_data = None  # includes orient, dist, age, genotype,..
@@ -30,6 +23,13 @@ class WildTypeDrosophilaData(Data):
 
     def preprocess(self, data=None, edge_trim=None): #preprcoess training data
         print("Preprocessing wild type data")
+        ##Here one can decide what is the data used for training
+        ## either 254 WT embryos measured between 38-48 minutes into n.c 14
+        ### or 38 WT embryos measured between 40-44 minutes into n.c 14.
+        ### in both cases, the test data is define as the latter
+        ###what is currently uncommented is when using the 38 WT embryos to learn the decode
+        ### and predict position estimate
+
         #all_training_data, training_meta_data = load_all_wt_droso_train_data()
         #self.meta_data = training_meta_data
 

@@ -28,11 +28,6 @@ def load_data(addr, non_genes_list, genes):
     df = pd.concat([df1, df2], axis=1)
     return df
 
-# def reformat_exp_data_to_arr(data, edge_trim=None):
-#     data_arr = np.array(data.values.tolist()).transpose(0, 2, 1)
-#     if edge_trim is not None:
-#         data_arr = data_arr[:, edge_trim:-edge_trim, :]
-#     return data_arr
 
 def get_normalized_decode_data(file_names, non_genes_list, genes, low_time=LOW_TIME, upper_time=UPPER_TIME):
     """

@@ -2,10 +2,6 @@
 import os
 
 """
-Directories:
-"""
-
-"""
 1. Download the data available in the supplementary of Petkova et. al 2019 , Cell
 "Optimal Decoding Optimal Decoding of Cellular Identities in a Genetic Network"
 
