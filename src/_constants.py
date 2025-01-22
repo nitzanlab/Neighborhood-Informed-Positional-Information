@@ -4,29 +4,14 @@ import os
 """
 Directories:
 """
-#HOME = "C:/Users/micha/thesis/code/data/position_decoding/drosophila_gregor_optimal_decoding/Data/Gap/"
-
-
-
-
-#DROSO_DATA_DIR_PATH = r'C:\Users\micha\thesis\code\data\position_decoding\drosophila_gregor_optimal_decoding\Data'
-
-#WT_GAP_GENE_DATA_DIR = r'C:\Users\micha\thesis\code\data\position_decoding\drosophila_gregor_optimal_decoding\Data\wt_training_data'
-
-#DROSO_RES_DIR = r'C:\Users\micha\thesis\code\data\position_decoding\drosophila_gregor_optimal_decoding\Results\all_results'
 
 HOME_DIR = r'C:\Users\micha\Neighborhood_Informed_PD'
 DROSO_RES_DIR = os.path.join(HOME_DIR, 'Droso_Res')
 DROSO_DATA_DIR_PATH = os.path.join(HOME_DIR, 'Drosophila_Data')
 WHERE = os.path.join(DROSO_DATA_DIR_PATH,'Gap')
 
-
-
 MUTANT_PAIR_RULE_DIR_PATH = os.path.join(DROSO_DATA_DIR_PATH, 'Pair_rule\pair_rule_data_raw_dorsal_')
 MUTANT_GAP_GENE_DIR_PATH = os.path.join(DROSO_DATA_DIR_PATH, 'Gap\gap_data_raw_dorsal_wt_')
-
-#MUTANT_PAIR_RULE_DIR_PATH = r'C:\Users\micha\thesis\code\data\position_decoding\drosophila_gregor_optimal_decoding\Data\Pair_rule\pair_rule_data_raw_dorsal_'
-#MUTANT_GAP_GENE_DIR_PATH = r'C:\Users\micha\thesis\code\data\position_decoding\drosophila_gregor_optimal_decoding\Data\Gap\gap_data_raw_dorsal_wt_'
 
 """
 Constants:
@@ -77,7 +62,7 @@ GAP_GENE_COLORS = {
     'Gt': '#bcbd22'   }# Olive Green (muted yellow-green) }
 
 DECODER_TYPE_COLOR = {'wn':'#ff7f0e','sc':'#0056b3'}
-DECODER_NAMES = {'wn':'Neighborhood informed', 'sc': 'Cell independent'}
+DECODER_NAMES = {'wn':'Neighborhood-informed', 'sc': 'Cell-independent'}
 PAIR_RULE_COLORS = {'Eve':'#008080','Prd':'#800080', 'Run':'#FF8C00' }
 
 MUTANT_PAIR_RULE_DATA = ['bcd_only_germline_clones', 'bcd_osk', 'bcd_tsl', 'bcdE1', 'etsl', 'osk','wt_bcd_nos_tsl']

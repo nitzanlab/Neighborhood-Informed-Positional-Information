@@ -11,11 +11,18 @@ from data.WildTypeDrosophila import *
 from src._utils import *
 #### panels b and c, gap gene and pair rule genes pairwise correlations:
 def gene_expression_pairwise_correlation_plots():
+    """
+    This function plots the pairwise correlation per gene of all of the gap genes together and all of
+    the pair rule genes together.
+    """
     plot_gap_gene_pairwise_correlations()
     plot_pair_rule_gene_pairwise_correlations()
 
 
 def plot_pair_rule_gene_pairwise_correlations():
+    """
+    This function plots the pairwise pair rule gene expression correlations over all of the positions
+    """
     pr_corr = pairwise_correlation_pair_rule_genes()
     bins = np.linspace(0.975, 1, 100)
     for i in range(pr_corr.shape[0]):  # per gene
@@ -28,15 +35,20 @@ def plot_pair_rule_gene_pairwise_correlations():
             alpha=0.5
         )
 
-    plt.legend(fontsize=20, loc='upper center')
+    plt.legend(fontsize=20, loc='upper left')
     plt.xlabel('pair-rule genes pairwise correlation')
     plt.ylabel('relative density')
-    plt.tight_layout()
+
     plt.ylim(0, .1)
+    plt.xlim(0.97,1)
+    plt.tight_layout()
     plt.show()
     pass
 
 def plot_gap_gene_pairwise_correlations():
+    """
+    This function plots the pair wise correlation  in pair rule gene expression in the wild type embryo over positions
+    """
     gg_corr = pairwise_correlations_gap_genes()
     bins = np.linspace(0.975, 1, 100)
     for i in range(gg_corr.shape[0]):  # per gene
@@ -48,13 +60,18 @@ def plot_gap_gene_pairwise_correlations():
             label=GAP_GENES[i],
             alpha=0.5
         )
-    plt.legend(fontsize=20, loc='upper center')
-    plt.xlabel('gap-gene pairwise correlation')
+    plt.legend(fontsize=20, loc='upper left')
+    plt.xlabel('gap gene pairwise correlation')
     plt.ylabel('relative density')
     plt.tight_layout()
+    plt.xlim(0.97, 1)
     plt.ylim(0, .1)
+    plt.tight_layout()
     plt.show()
 def pairwise_correlations_gap_genes():
+    """
+    This function calculates the pairwise correlations in gap genes
+    """
     wt_gap_gene = load_wt_gap_test_data()
     wt_arr = reformat_exp_data_to_arr(wt_gap_gene)[:,EDGE_TRIM:-EDGE_TRIM,:]
     gene_names = np.array(wt_gap_gene.columns)
@@ -69,6 +86,9 @@ def pairwise_correlations_gap_genes():
     return np.array(all_genes_corrs)
 
 def pairwise_correlation_pair_rule_genes():
+    """
+        This function measures the pairwise correlations in pair rules gene expression
+    """
     wt_pr = get_wt_pr_data()
     wt_arr_pr = reformat_exp_data_to_arr(wt_pr)[:, EDGE_TRIM:-EDGE_TRIM, :]
     all_genes_corrs = []
@@ -83,6 +103,9 @@ def pairwise_correlation_pair_rule_genes():
 
 ### figure 1d, position information in bits panel
 def plot_positional_information_in_bits_empirical_std(wn_stds, sc_stds):
+    """
+    This function plots the positional information in bits based on the empirical posterior position decoding distribution
+    """
     positions = np.linspace(0.1, 0.9, sc_stds.shape[1])
 
     plt.plot(positions, np.log2(N) * np.ones_like(positions), color='gray', linestyle='--',
@@ -110,6 +133,9 @@ def plot_positional_information_in_bits_empirical_std(wn_stds, sc_stds):
 
 
 def plot_positional_information_in_bits():
+    """
+    This function measures and plots the positional information in bits based on the position estimate error
+    """
     sigma_x_wn = caclulate_positional_error_per_decoding_map_MAP_positions(f'wn_wt')  # vs 'wn'
     sigma_x_sc = caclulate_positional_error_per_decoding_map_MAP_positions(f'sc_wt')
 
@@ -158,16 +184,27 @@ def plot_positional_information_in_bits():
     plt.show()
 
 def plot_decoding_maps_comparison_wt(genes:list, vmaxs, xlim):
+    """
+    This function plots the comparison between the decoding map for neighborhood-informed decoding
+    and the cell-independent decoding in wild type embryos
+    """
     wt_droso = WildTypeDrosophilaData(training=True)
     wt_droso.plot_gene_exp_over_positions(genes)
     plot_decoding_maps([genes], WT_DECODE_TYPES,vmaxs, xlim)
 
 def plot_all_decoding_maps_comparison_wt():
+    """
+    This function plots the comparison between the decoding maps when decoding based on multiple subsets of gap gene expression
+    separately
+    """
     for gene_subset in [['Kr'],['Kr','Hb'],['Kr','Gt','Hb'],GAP_GENES]:
         print(gene_subset)
         plot_decoding_maps([gene_subset], WT_DECODE_TYPES,VMAXS_THREE_GENES, xlim=False)
 
 def plot_decoding_maps(genes_subset_list, types, vmaxs, xlim):
+    """
+    This function plots the decoding maps of the position posterior distribution
+    """
     for i,gene_subset in enumerate(genes_subset_list):
         for type in types:
             decoding_map_obj = TestResults.from_pickle(DROSO_RES_DIR, type, gene_subset)
@@ -176,6 +213,10 @@ def plot_decoding_maps(genes_subset_list, types, vmaxs, xlim):
 
 
 def plot_position_posterior_std_all_gene_subsets():
+    """
+    This function plots the position standard deviation when decoding based on each of the
+    gap gene subsets.
+    """
     all_gene_subsets = get_all_gap_gene_subsets_list()
     sc_mean_errs = []
     sc_std_errs = []
@@ -213,6 +254,9 @@ def plot_position_posterior_std_all_gene_subsets():
                                     y_label='mean position uncertainty')
 
 def error_by_num_genes_to_plot_vals(error_by_num_genes_wn, error_by_num_genes_sc,label_axes=False, x_label=None, y_label=None ):
+    """
+    This function plots the errors as a bar plot where each bar is the mean over all of the gene subsets of the same size.
+    """
     wn_mean_num_genes = []
     wn_std_num_genes = []
     sc_mean_num_genes = []
@@ -225,6 +269,9 @@ def error_by_num_genes_to_plot_vals(error_by_num_genes_wn, error_by_num_genes_sc
     plot_bar_comparison(wn_mean_num_genes, wn_std_num_genes, sc_mean_num_genes, sc_std_num_genes, np.arange(1, 5),label_axes=label_axes, x_label=x_label, y_label=y_label)
 
 def plot_bar_comparison(wn_mean_errs, wn_std_errs, sc_mean_errs, sc_std_errs, labels,data_type='',label_axes=False, x_label=None, y_label=None):
+    """
+    This is a generic function for plot bar plots
+    """
     lower_wn_err = sc_std_errs
     lower_sc_err = sc_std_errs
 
@@ -241,7 +288,7 @@ def plot_bar_comparison(wn_mean_errs, wn_std_errs, sc_mean_errs, sc_std_errs, la
 
     plt.xticks(br1 + (0.5) * barWidth, labels)
     #plt.title(data_type)
-    plt.legend(loc="lower left")
+    plt.legend(loc="upper right")
     #plt.ylim(0,0.4)
     plt.tight_layout()
     plt.subplots_adjust(left=0.2)
@@ -249,6 +296,9 @@ def plot_bar_comparison(wn_mean_errs, wn_std_errs, sc_mean_errs, sc_std_errs, la
 
 
 def plot_position_MAP_error_all_gene_subsets():
+    """
+    This function plots the MAP position decoding error for all of the gap gene subsets
+    """
     all_gene_subsets = get_all_gap_gene_subsets_list()
     sc_mean_errs = []
     sc_std_errs = []
@@ -287,6 +337,9 @@ def plot_position_MAP_error_all_gene_subsets():
 
 ####################### WT pair rule prediction related functions ##########################################
 def pair_rule_prediction_across_positions():
+    """
+    This function calculates and then plots the pair rule gene expression predictions across the AP axis
+    """
     sc_map, wn_map = get_wt_decoding_maps()
     sc_pr_pred = get_pr_expected_expression_profiles(sc_map)
     wn_pr_pred = get_pr_expected_expression_profiles(wn_map)
@@ -296,6 +349,9 @@ def pair_rule_prediction_across_positions():
 
 
 def plot_predicted_prs_across_positions(wn_pr_pred, sc_pr_pred, wt_pr_data):
+    """
+    This function plots the predicted pair rule expression across positions
+    """
     mean_pr_pred = np.mean(wt_pr_data, axis=0)
     mean_pr_pred_normed = ((mean_pr_pred - np.min(mean_pr_pred, axis=0))
                                         / (np.max(mean_pr_pred, axis=0) - np.min(
@@ -339,11 +395,11 @@ def plot_predicted_prs_across_positions(wn_pr_pred, sc_pr_pred, wt_pr_data):
         plt.show()
 
 
-def plot_single_mutation_pr_genes_mean_prediction_error():
-
-    pass
 
 def plot_all_pr_genes_mean_prediction_error():
+    """
+    This function plots all of the pair rule genes mean prediction errors
+    """
     sc_map, wn_map = get_wt_decoding_maps()
     sc_pr_pred = get_pr_expected_expression_profiles(sc_map)
     wn_pr_pred = get_pr_expected_expression_profiles(wn_map)
@@ -364,15 +420,19 @@ def plot_all_pr_genes_mean_prediction_error():
     mean_wn_err = np.mean(np.mean(wn_weighted_pr_err, axis=1), axis=0)
     std_wn_err = np.std(np.mean(wn_weighted_pr_err, axis=1), axis=0)
 
-    plot_bar_comparison(mean_wn_err, std_wn_err, mean_sc_err, std_sc_err, PAIR_RULE_GENES, label_axes=True,
-                        x_label='pair-rule gene', y_label='mean prediction error')
+   # plot_bar_comparison(mean_wn_err, std_wn_err, mean_sc_err, std_sc_err, PAIR_RULE_GENES, label_axes=True,
+   #                     x_label='pair-rule gene', y_label='mean prediction error')
 
-    sc_weighted_pr_err_std = sc_pr_pred_err / std_pr_gene_per_pos
-    wn_weighted_pr_err_std = wn_pr_pred_err / std_pr_gene_per_pos
-    plot_error_pr_error_per_position(sc_weighted_pr_err_std, wn_weighted_pr_err_std)
+    sc_weighted_pr_err_std = sc_pr_pred_err / (std_pr_gene_per_pos)
+    wn_weighted_pr_err_std = wn_pr_pred_err / (std_pr_gene_per_pos)
+    plot_error_pr_error_per_position(sc_pr_pred_err, wn_pr_pred_err)
+    #plot_error_pr_error_per_position(sc_weighted_pr_err_std, wn_weighted_pr_err_std)
 
 
 def plot_error_pr_error_per_position(sc_weighted_pr_err_std, wn_weighted_pr_err_std):
+    """
+    This function plots the pair rule error per position
+    """
     width=0.4
     for j in range(sc_weighted_pr_err_std.shape[2]):
         #plt.figure(figsize=(12, 10))
@@ -394,9 +454,9 @@ def plot_error_pr_error_per_position(sc_weighted_pr_err_std, wn_weighted_pr_err_
         box2 = plt.boxplot(sc_agg, positions=positions + width / 2, widths=width, patch_artist=True,
                            boxprops=dict(facecolor=DECODER_TYPE_COLOR['sc']), showfliers=False)
 
-        plt.xlabel("binned positions")
-        plt.ylabel("pair rule reconstruction error")
-        plt.xticks(positions, np.arange(num_bins))
+        plt.xlabel(POSITION_X_LABEL)
+        plt.ylabel(f"{PAIR_RULE_GENES[j]} expression prediction error")
+        plt.xticks(positions[::2], ((np.arange(num_bins))*bin_size/800)[::2])
         plt.legend([box1["boxes"][0], box2["boxes"][0]],
                    [DECODER_NAMES['wn'], DECODER_NAMES['sc']],
                    loc="upper right")
@@ -409,6 +469,9 @@ def plot_error_pr_error_per_position(sc_weighted_pr_err_std, wn_weighted_pr_err_
 
 ####################### mutant background embryo analyses related functions ##############################
 def plot_all_mutant_results(mutant_type):
+    """
+    This function plots all of the mutant results shown in the paper
+    """
     #plot_mutant_gap_gene(mutant_type)
     #plot_decoding_maps_mutants([mutant_type], DECODING_TYPES)
     ##binned over positions
@@ -432,6 +495,10 @@ def plot_all_mutant_results(mutant_type):
 #     plt.show()
 
 def plot_posterior_standard_deviation_comparison(wn_stds, sc_stds):
+    """
+    This function plots the posterior standard deviation comparison when neighborhood-informed
+    compared to cell-independent
+    """
     labels = ['neighborhood\n informed', 'cell\n independent']
     data = [wn_stds.flatten(), sc_stds.flatten()]  # Flatten to combine all samples
 
@@ -482,6 +549,9 @@ def plot_posterior_standard_deviation_comparison(wn_stds, sc_stds):
     plt.show()
 
 def plot_posterior_standard_deviation_comparison_wt():
+    """
+    This function plots the posterior distribution standard deviation comparison in wild type embryos
+    """
     wn_map = TestResults.from_pickle(DROSO_RES_DIR, 'wn_wt', GAP_GENES)
     sc_map = TestResults.from_pickle(DROSO_RES_DIR, 'sc_wt', GAP_GENES)
     wn_stds = get_std_per_position_decoding_map(wn_map.normalized_decoding_map)
@@ -511,6 +581,9 @@ def plot_posterior_standard_deviation_comparison_wt():
     plt.show()
 
 def plot_posterior_standard_deviation_comparison_mutants(mutant_type):
+    """
+    This function plots the position posterior distribution standard deviation comparison in mutant embryos
+    """
     wn_map = TestResults.from_pickle(DROSO_RES_DIR, f'{mutant_type}_wn', GAP_GENES)
     sc_map = TestResults.from_pickle(DROSO_RES_DIR, f'{mutant_type}_sc', GAP_GENES)
     wn_stds = get_std_per_position_decoding_map(wn_map.normalized_decoding_map)
@@ -538,12 +611,15 @@ def plot_posterior_standard_deviation_comparison_mutants(mutant_type):
     plt.show()
 
 def plot_decoding_map_uncertainty_mutants_binned_positions(mutant_type):
+    """
+    This function plots the decoding map standard deviation in mutants, binned across positions
+    """
     wn_map = TestResults.from_pickle(DROSO_RES_DIR, f'{mutant_type}_wn', GAP_GENES)
     sc_map = TestResults.from_pickle(DROSO_RES_DIR, f'{mutant_type}_sc', GAP_GENES)
     wn_stds = get_std_per_position_decoding_map(wn_map.normalized_decoding_map)
     sc_stds= get_std_per_position_decoding_map(sc_map.normalized_decoding_map)[:,1:-1]
-    plot_posterior_standard_deviation_comparison(wn_stds, sc_stds)
-    plot_positional_information_in_bits()
+    #plot_posterior_standard_deviation_comparison(wn_stds, sc_stds)
+    #plot_positional_information_in_bits()
 
     width = 0.4
     bin_size = 50
@@ -564,9 +640,9 @@ def plot_decoding_map_uncertainty_mutants_binned_positions(mutant_type):
     box2 = plt.boxplot(sc_agg, positions=positions + width / 2, widths=width, patch_artist=True,
                        boxprops=dict(facecolor=DECODER_TYPE_COLOR['sc']), showfliers=False)
 
-    plt.xlabel("binned positions")
+    plt.xlabel(POSITION_X_LABEL)
     plt.ylabel("posterior standard deviation")
-    plt.xticks(positions, np.arange(num_bins))
+    plt.xticks(positions[::2], (np.arange(num_bins)*bin_size/800)[::2])
     plt.legend([box1["boxes"][0], box2["boxes"][0]],
                [DECODER_NAMES['wn'], DECODER_NAMES['sc']],
                loc="upper right")
@@ -578,10 +654,37 @@ def plot_decoding_map_uncertainty_mutants_binned_positions(mutant_type):
     plt.show()
 
 
+def plot_wt_gap_gene():
+    wt_gap_exp = load_all_wt_droso_train_data()[0]
+    wt_gap_exp_arr = reformat_exp_data_to_arr(wt_gap_exp, EDGE_TRIM)
+    min_vals = np.min(wt_gap_exp_arr, axis=1, keepdims=True)  # Shape: (num_samples, 1, num_features)
+    max_vals = np.max(wt_gap_exp_arr, axis=1, keepdims=True)  # Shape: (num_samples, 1, num_features)
+
+    wt_gap_exp_arr_normed = (wt_gap_exp_arr - min_vals) / (max_vals - min_vals)
+    mean_pr_exp_per_gene = np.mean(wt_gap_exp_arr_normed, axis=0)
+    std_pr_exp_per_gene = np.std(wt_gap_exp_arr_normed, axis=0)
+    positions = np.linspace(.1, 0.9, wt_gap_exp_arr_normed.shape[1])
+
+    for i, gene in enumerate(wt_gap_exp.columns):
+        mean_per_pos_one_gene = mean_pr_exp_per_gene[:, i]
+        std_per_pos_one_gene = std_pr_exp_per_gene[:, i]
+        plt.plot(positions, mean_per_pos_one_gene, color=GAP_GENE_COLORS[gene])
+        plt.fill_between(positions, mean_per_pos_one_gene - std_per_pos_one_gene,
+                         mean_per_pos_one_gene + std_per_pos_one_gene, alpha=0.5, label=gene,
+                         color=GAP_GENE_COLORS[gene])
+
+    plt.legend(loc='upper right')
+    plt.xlabel('position (x/L)')
+    plt.ylabel('gap gene expression')
+    plt.tight_layout()
+    plt.show()
 
 
 
 def plot_mutant_gap_gene(mutant_type):
+    """
+    This function plot the mutant gap gene expression, given the specific mutant type
+    """
     mutant_gap_exp = get_mutant_gap_data(mutant_type)
     mutant_gap_exp_arr = reformat_exp_data_to_arr(mutant_gap_exp)[:, EDGE_TRIM:-EDGE_TRIM, :]
     min_vals = np.min(mutant_gap_exp_arr, axis=1, keepdims=True)  # Shape: (num_samples, 1, num_features)
@@ -602,11 +705,17 @@ def plot_mutant_gap_gene(mutant_type):
 
     plt.legend(loc='upper right')
     plt.xlabel('position (x/L)')
-    plt.ylabel('gene expression')
+    plt.ylabel('gap gene expression')
     plt.tight_layout()
     plt.show()
 
 def plot_decoding_maps_mutants(mutant_types, decoding_types):
+    """
+    This function plots the decoding maps of the mutant types given the specific mutant type
+    :param mutant_types:
+    :param decoding_types:
+    :return:
+    """
     for mutant_type in mutant_types:
         print(mutant_type)
         for decoding_type in decoding_types:
@@ -616,12 +725,18 @@ def plot_decoding_maps_mutants(mutant_types, decoding_types):
 
 
 def plot_position_uncertainty_decoding_comparison_mutants(mutant_type):
+    """
+    This function plots the position standard deviation comparison between mutants given a specific mutant type
+    """
     wn_map = TestResults.from_pickle(DROSO_RES_DIR, f'{mutant_type}_wn', GAP_GENES)
     sc_map = TestResults.from_pickle(DROSO_RES_DIR, f'{mutant_type}_sc', GAP_GENES)
     results = plot_prediction_loss_weighted_by_expression_variance_mutant(mutant_type, sc_map, wn_map, label_axes=True, x_label='pair rule gene', y_label='mean prediction error')
     return results
 
 def plot_one_mutation_expression_correlation():
+    """
+    This function plots the mutant expression in correlation
+    """
     mean_exp_correlations_wn = {'Eve':[], 'Run':[], 'Prd':[]}
     mean_exp_correlations_sc = {'Eve': [], 'Run': [], 'Prd': []}
     for mutant_type in ONE_MUTATION_TYPES:
@@ -680,6 +795,9 @@ def plot_prediction_loss_weighted_by_expression_variance_mutant(mutant_type, sc_
 
 
 def plot_mutant_pr_predictions_and_errors(mutant_type, plot_binned_position_errors=False):
+    """
+    This function plots the mutant pair rule prediction and errors given the specific mutant type
+    """
     sc_pr_pred, wn_pr_pred = calculate_mutant_pr_pred(mutant_type)
 
     mean_mutant_pr_exp = get_mutant_pr_data(mutant_type)
@@ -692,16 +810,25 @@ def plot_mutant_pr_predictions_and_errors(mutant_type, plot_binned_position_erro
         plot_error_pr_error_per_position(sc_weighted_pr_err, wn_weighted_pr_err)
 
 def plot_mutant_pr_exp(mutant_type='osk'):
+    """
+    This function plots the mutant pair rule gene expression give the specific mutant type
+    """
     mutant_pr = get_mutant_pr_data(mutant_type)
     mutant_pr_arr = reformat_exp_data_to_arr(mutant_pr)[:, EDGE_TRIM:-EDGE_TRIM, :]
     plot_pr_exp(mutant_pr_arr)
 
 def plot_wt_pr_exp():
+    """
+    This function plots the wild type pair rule gene expression profiles
+    """
     wt_pr = get_wt_pr_data()
     wt_pr_arr = reformat_exp_data_to_arr(wt_pr, EDGE_TRIM)
     plot_pr_exp(wt_pr_arr)
 
 def plot_pr_exp(pr_arr):
+    """
+    This function plots pair rule gene expression given the pair rule array
+    """
     min_vals = np.min(pr_arr, axis=1, keepdims=True)  # Shape: (num_samples, 1, num_features)
     max_vals = np.max(pr_arr, axis=1, keepdims=True)  # Shape: (num_samples, 1, num_features)
 

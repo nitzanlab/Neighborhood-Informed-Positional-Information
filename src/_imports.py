@@ -1,3 +1,8 @@
+"""
+This python file includes the packages needed to be imported for the data loading , computations,
+and analyses
+"""
+
 import os
 from itertools import combinations
 import pickle

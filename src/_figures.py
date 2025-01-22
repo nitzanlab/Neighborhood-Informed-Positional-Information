@@ -5,25 +5,25 @@ def plot_figure1_panels():
     This functions plots panels b,c,d,e,f,h, and i. Panels a and g are schematic diagrams drawn in biorender.com
     """
     ##panels b and c: gene expression correlations
-    gene_expression_pairwise_correlation_plots()
+    #gene_expression_pairwise_correlation_plots()
 
     #panel d: positional information in bits
-    plot_positional_information_in_bits()
-
-    #panel e: decoding neighborhood-informed and cell independent given Kr expression
-    plot_decoding_maps_comparison_wt(ONE_GENE_EXAMPLE_GENE, VMAXS_ONE_GENE, xlim=True)
-
-    #panel f: decoding neighborhood-informed and cell independent give Kr, Gt, and Hb expression
-    plot_decoding_maps_comparison_wt(THREE_GENES_EXAMPLE_GENES, VMAXS_THREE_GENES, xlim=False)
-
-    #aggregated results - mean MAP error over positions and over wild type embryos, mean per number of genes used
-    #for decoding
-    #panel h:
-    plot_position_MAP_error_all_gene_subsets()
+    # plot_positional_information_in_bits()
     #
-    # #same aggregation , but looking at the standard deviation of the position posterior distribution
-    # #neighborhood-informed vs cell-independent
-    # #panel i:
+    # #panel e: decoding neighborhood-informed and cell independent given Kr expression
+    #plot_decoding_maps_comparison_wt(ONE_GENE_EXAMPLE_GENE, VMAXS_ONE_GENE, xlim=False) #True
+    #
+    # #panel f: decoding neighborhood-informed and cell independent give Kr, Gt, and Hb expression
+    #plot_decoding_maps_comparison_wt(THREE_GENES_EXAMPLE_GENES, VMAXS_THREE_GENES, xlim=False)
+    #
+    # #aggregated results - mean MAP error over positions and over wild type embryos, mean per number of genes used
+    # #for decoding
+    # #panel h:
+    plot_position_MAP_error_all_gene_subsets()
+    # #
+    # # #same aggregation , but looking at the standard deviation of the position posterior distribution
+    # # #neighborhood-informed vs cell-independent
+    # # #panel i:
     plot_position_posterior_std_all_gene_subsets()
 
 def plot_figure2_and_related_supp_panels():
@@ -38,7 +38,7 @@ def plot_figure2_and_related_supp_panels():
     pair_rule_prediction_across_positions()
 
     #figure 2 panel c -reconstruction error across AP axis, d - summary results - mean prediction error per pair-rule gene:
-    plot_all_pr_genes_mean_prediction_error()
+   # plot_all_pr_genes_mean_prediction_error()
 
 def plot_figure3_panels():
     """
@@ -46,9 +46,8 @@ def plot_figure3_panels():
     for Osk mutant background embryos
     :return:
     """
-    plot_all_mutant_results(mutant_type='osk')
-
-    ##TODO:wild type expression of all gap genes for comparison
+    plot_wt_gap_gene()
+    #plot_all_mutant_results(mutant_type='osk')
 
     ##mutant pair-rule prediction and errors:
     #plot_mutant_pr_predictions_and_errors(mutant_type='osk', plot_binned_position_errors=True)
@@ -60,6 +59,7 @@ def plot_figure3_panels():
 
 def plot_figure5_panels():
     for mutant_type in MUTANT_TYPES:
+        print(mutant_type)
         plot_all_mutant_results(mutant_type)
 
 
@@ -120,15 +120,19 @@ def plot_figure6_panels():
             ax_sc.set_yticks([])  # Remove yticks for SC plot
 
             # Add gene name in the bottom-right corner of each subplot (larger and bold)
-            ax_sc.text(0.95, 0.05, f'{gene}', transform=ax_sc.transAxes, ha='right', va='bottom', fontsize=22,
+            # ax_sc.text(0.95, 0.05, f'{gene}', transform=ax_sc.transAxes, ha='right', va='bottom', fontsize=22,
+            #            fontweight='bold')
+            # ax_wn.text(0.95, 0.05, f'{gene}', transform=ax_wn.transAxes, ha='right', va='bottom', fontsize=22,
+            #            fontweight='bold')
+            ax_sc.text(0.5, 0.85, f'{gene}', transform=ax_sc.transAxes, ha='center', va='bottom', fontsize=22,
                        fontweight='bold')
-            ax_wn.text(0.95, 0.05, f'{gene}', transform=ax_wn.transAxes, ha='right', va='bottom', fontsize=22,
+            ax_wn.text(0.5, 0.85, f'{gene}', transform=ax_wn.transAxes, ha='center', va='bottom', fontsize=22,
                        fontweight='bold')
 
             # Collect handles and labels for the legend
             if i == 0:
                 handles.extend([line_pr, line_wn, line_sc])
-                labels.extend([f'{gene} mean expression', DECODER_NAMES['wn'], DECODER_NAMES['sc']])
+                labels.extend([f'Pair Rule Gene Mean Expression', DECODER_NAMES["wn"]+" Prediction", DECODER_NAMES["sc"]+" Prediction"])
 
         # Add a single legend for all subplots outside of the plots
         fig.legend(handles, labels, loc='upper center', bbox_to_anchor=(0.5, 1.03), ncol=3)
@@ -139,6 +143,5 @@ def plot_figure6_panels():
         # Adjust layout to make more space and remove excess white space
         plt.subplots_adjust(top=0.85, bottom=0.2, left=0.05, right=0.97, hspace=0.05, wspace=0.05)
         plt.show()
-    # for mutant_type in MUTANT_TYPES:
-    #     plot_mutant_pr_predictions_and_errors(mutant_type)
+
 

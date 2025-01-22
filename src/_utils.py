@@ -2,6 +2,9 @@ from src._constants import *
 from test_results_analysis.TestResults import *
 from data._data import *
 def set_style():
+    """
+    This function sets the style of the plots to be consistent and is fun before each plotting
+    """
     plt.rcParams.update(plt.rcParamsDefault)
     plt.rcParams.update({'figure.titlesize': 26, 'figure.titleweight': 'bold', 'axes.titlesize': 22,
                          'axes.titleweight': "bold", 'axes.labelsize': 24,'axes.labelweight': 'bold',
@@ -11,6 +14,9 @@ def set_style():
 
 
 def caclulate_positional_error_per_decoding_map_MAP_positions(decoding_type):
+    """
+    This function calculates the MAP position error  for each position decoding map.
+    """
     wt_decoding_res = TestResults.from_pickle(DROSO_RES_DIR, decoding_type, GAP_GENES)
     wt_cov = wt_decoding_res.train_std
     decoding_map = wt_decoding_res.normalized_decoding_map
@@ -39,10 +45,17 @@ def caclulate_positional_error_per_decoding_map_MAP_positions(decoding_type):
     return pos_err
 
 def calculate_positional_inf(sigma_x):
+    """
+    This function calculates the positional information given the position estimate variance
+    """
     return np.log2(1/(sigma_x*np.sqrt(2*np.pi*np.e)))
 
 
 def get_all_gap_gene_subsets_list(save=False):
+    """
+    This function returns a list of all of the subsets of gap genes
+    for position decoding
+    """
     all_decoding_gene_subsets = []
     for r in range(1, len(GAP_GENES) + 1):
         for subset_decode_genes in combinations(GAP_GENES, r):
@@ -54,6 +67,9 @@ def get_all_gap_gene_subsets_list(save=False):
     return all_decoding_gene_subsets
 
 def get_wt_decoding_maps():
+    """
+    This function loads the neighborhood-informed and the cell-dependent decoding
+    """
     sc_map = TestResults.from_pickle(DROSO_RES_DIR, 'sc_wt', GAP_GENES)
     sc_map.normalized_decoding_map = sc_map.raw_test_results[:, 1:-1, 1:-1]
     wn_map = TestResults.from_pickle(DROSO_RES_DIR, 'wn_wt', GAP_GENES)
@@ -61,11 +77,17 @@ def get_wt_decoding_maps():
     return sc_map, wn_map
 
 def get_pr_expected_expression_profiles(decoding_map):
+    """
+    This function calculates the predicted pair rule gene expression profiles
+    """
     mean_wt_pr_exp = get_mean_wt_pr_per_position(EDGE_TRIM)[1:-1, :]
     pr_predictions = decoding_map.expected_pr_exp(mean_wt_pr_exp)
     return pr_predictions
 
 def get_pr_MAP_expression_profiles(decoding_map):
+    """
+    This function calculates the pair rule position at the MAP of the posterior distribution
+    """
     mean_wt_pr_exp = get_mean_wt_pr_per_position(EDGE_TRIM)[1:-1, :]
     pr_predictions = decoding_map.predicted_pr_map_across_positions(mean_wt_pr_exp)
     return pr_predictions
@@ -113,6 +135,9 @@ def compare_expression_correlations(mutant_type, wn_pred, sc_pred):
 
 
 def calculate_mutant_pr_pred(mutant_type):
+    """
+    This function calculates the mutant pair rule gene expression prediction
+    """
     wn_map = TestResults.from_pickle(DROSO_RES_DIR, f'{mutant_type}_wn', GAP_GENES)
     sc_map = TestResults.from_pickle(DROSO_RES_DIR, f'{mutant_type}_sc', GAP_GENES)
 
@@ -146,6 +171,9 @@ def calculate_mutant_pr_pred_err(mutant_type, sc_pr_pred, wn_pr_pred,mean_exp_mu
     return sc_weighted_pr_err, wn_weighted_pr_err
 
 def get_std_per_position_decoding_map(decoding_map):
+    """
+    This function calculates the posterior distribution standard deviation per position position
+    """
     num_embryos = decoding_map.shape[0]
     #actual_positions = np.arange(decoding_map.shape[1]).reshape(1, -1, 1)
     actual_positions = np.linspace(POSITIONS_START, POSITIONS_END, decoding_map.shape[1]).reshape(1, -1, 1)

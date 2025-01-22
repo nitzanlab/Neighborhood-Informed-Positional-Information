@@ -21,13 +21,16 @@ def plot_all_figures():
 
 if __name__ == '__main__':
     set_style()
-    plot_mutant_pr_exp('osk')
-    plot_wt_pr_exp()
+    plot_figure1_panels()
+    print('')
+    #plot_all_figures()
+    # plot_mutant_pr_exp('osk')
+    # plot_wt_pr_exp()
     #plot_positional_information_in_bits()
     #plot_posterior_standard_deviation_comparison_wt()
     #plot_posterior_standard_deviation_comparison_wt()
     #calculate_all_mutant_decoding_maps()
-    #plot_all_figures()
+
     #plot_posterior_standard_deviation_comparison_wt()
     #plot_all_decoding_maps_comparison_wt()
     #calculate_all_gene_subset_decoding_maps_WT()
