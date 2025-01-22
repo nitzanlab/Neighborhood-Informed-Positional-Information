@@ -225,6 +225,8 @@ def plot_position_posterior_std_all_gene_subsets():
     genes_as_label = []
     error_by_num_genes_sc = {1: [], 2: [], 3: [], 4: []}
     error_by_num_genes_wn = {1: [], 2: [], 3: [], 4: []}
+    t_tests_pvals = {1: [], 2: [], 3: [], 4: []}
+    mean_t_test_pvals = {1: [], 2: [], 3: [], 4: []}
     for gene_subset in all_gene_subsets:
         num_genes = len(gene_subset)
         genes_as_label.append('\n'.join(gene_subset))
@@ -247,16 +249,33 @@ def plot_position_posterior_std_all_gene_subsets():
 
         error_by_num_genes_sc[num_genes].append(mean_sc_err)
         error_by_num_genes_wn[num_genes].append(mean_wn_err)
+        mean_t_per_embryo = 0
+        for i in range(sc_weighted_err.shape[0]):
+            t_stat, p_value = ttest_ind(sc_weighted_err.flatten(), wn_weighted_err.flatten(), equal_var=False)
+            mean_t_per_embryo +=  1 if p_value<=0.05 else 1
+        t_tests_pvals[len(gene_subset)].append(mean_t_per_embryo/sc_weighted_err.shape[0])
 
+    for i in range(1,5):
+        mean_t_test_pvals[i] = np.mean(t_tests_pvals[i])
+    print(f' mean t test vals: {mean_t_test_pvals}')
     # plot_bar_comparison(wn_mean_errs, wn_std_errs, sc_mean_errs, sc_std_errs, genes_as_label, label_axes=True, x_label='number of genes used for decoding position',y_label='mean position uncertainty')
     error_by_num_genes_to_plot_vals(error_by_num_genes_wn, error_by_num_genes_sc, label_axes=True,
                                     x_label='number of genes used for\n position decoding',
                                     y_label='mean position uncertainty')
 
+def get_ttest_error_by_nums(error_by_num_genes_wn, error_by_num_genes_sc):
+    ttest_results = []
+    for i in range(1,len(error_by_num_genes_wn)+1):
+        # Perform independent t-test for the ith entries
+        t_stat, p_value = ttest_ind(error_by_num_genes_wn[i], error_by_num_genes_sc[i], equal_var=False)
+        ttest_results.append((t_stat, p_value))
+    print(ttest_results)
+    return ttest_results
 def error_by_num_genes_to_plot_vals(error_by_num_genes_wn, error_by_num_genes_sc,label_axes=False, x_label=None, y_label=None ):
     """
     This function plots the errors as a bar plot where each bar is the mean over all of the gene subsets of the same size.
     """
+
     wn_mean_num_genes = []
     wn_std_num_genes = []
     sc_mean_num_genes = []
@@ -307,6 +326,8 @@ def plot_position_MAP_error_all_gene_subsets():
     genes_as_label = []
     error_by_num_genes_sc = {1: [], 2: [], 3: [], 4: []}
     error_by_num_genes_wn = {1: [], 2: [], 3: [], 4: []}
+    t_tests_pvals = {1: [], 2: [], 3: [], 4: []}
+    mean_t_test_pvals = {1: [], 2: [], 3: [], 4: []}
     for gene_subset in all_gene_subsets:
         num_genes = len(gene_subset)
         genes_as_label.append('\n'.join(gene_subset))
@@ -329,6 +350,15 @@ def plot_position_MAP_error_all_gene_subsets():
 
         error_by_num_genes_sc[num_genes].append(mean_sc_err)
         error_by_num_genes_wn[num_genes].append(mean_wn_err)
+        mean_t_per_embryo = 0
+        for i in range(sc_weighted_err.shape[0]):
+            t_stat, p_value = ttest_ind(sc_weighted_err.flatten(), wn_weighted_err.flatten(), equal_var=False)
+            mean_t_per_embryo += 1 if p_value<=0.05 else 0
+        t_tests_pvals[len(gene_subset)].append(mean_t_per_embryo/sc_weighted_err.shape[0])
+
+    for i in range(1,5):
+        mean_t_test_pvals[i] = np.mean(t_tests_pvals[i])
+    print(f' mean t test vals: {mean_t_test_pvals}')
 
     error_by_num_genes_to_plot_vals(error_by_num_genes_wn, error_by_num_genes_sc, label_axes=True,
                                     x_label='number of genes used for\n position decoding',
@@ -419,13 +449,19 @@ def plot_all_pr_genes_mean_prediction_error():
     std_sc_err = np.std(np.mean(sc_weighted_pr_err, axis=1), axis=0)
     mean_wn_err = np.mean(np.mean(wn_weighted_pr_err, axis=1), axis=0)
     std_wn_err = np.std(np.mean(wn_weighted_pr_err, axis=1), axis=0)
-
-   # plot_bar_comparison(mean_wn_err, std_wn_err, mean_sc_err, std_sc_err, PAIR_RULE_GENES, label_axes=True,
-   #                     x_label='pair-rule gene', y_label='mean prediction error')
-
-    sc_weighted_pr_err_std = sc_pr_pred_err / (std_pr_gene_per_pos)
+    print(sc_weighted_pr_err.shape[0])
+    for j in range(len(PAIR_RULE_GENES)):
+        sig_pvals = 0
+        for i in range(sc_weighted_pr_err.shape[0]):
+            ttest, pval  = ttest_ind(sc_weighted_pr_err[i,:,j], wn_weighted_pr_err[i,:,j])
+            sig_pvals += 1 if pval<=0.05 else 0
+        print(sig_pvals/sc_weighted_pr_err.shape[0])
+    plot_bar_comparison(mean_wn_err, std_wn_err, mean_sc_err, std_sc_err, PAIR_RULE_GENES, label_axes=True,
+                        x_label='pair-rule gene', y_label='mean prediction error')
+   #
+   #  sc_weighted_pr_err_std = sc_pr_pred_err / (std_pr_gene_per_pos)
     wn_weighted_pr_err_std = wn_pr_pred_err / (std_pr_gene_per_pos)
-    plot_error_pr_error_per_position(sc_pr_pred_err, wn_pr_pred_err)
+    #plot_error_pr_error_per_position(sc_pr_pred_err, wn_pr_pred_err)
     #plot_error_pr_error_per_position(sc_weighted_pr_err_std, wn_weighted_pr_err_std)
 
 

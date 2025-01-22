@@ -20,11 +20,15 @@ def plot_figure1_panels():
     # #for decoding
     # #panel h:
     plot_position_MAP_error_all_gene_subsets()
-    # #
     # # #same aggregation , but looking at the standard deviation of the position posterior distribution
     # # #neighborhood-informed vs cell-independent
     # # #panel i:
-    plot_position_posterior_std_all_gene_subsets()
+    #plot_position_posterior_std_all_gene_subsets()
+
+
+
+    # #
+
 
 def plot_figure2_and_related_supp_panels():
     """
@@ -35,10 +39,10 @@ def plot_figure2_and_related_supp_panels():
     """
     ##pair rule prediction across AP axis - qualitative comparison
     #figure 2 panel b - Prd prediction and supplementary Run and Eve prediction
-    pair_rule_prediction_across_positions()
+    #pair_rule_prediction_across_positions()
 
     #figure 2 panel c -reconstruction error across AP axis, d - summary results - mean prediction error per pair-rule gene:
-   # plot_all_pr_genes_mean_prediction_error()
+    plot_all_pr_genes_mean_prediction_error()
 
 def plot_figure3_panels():
     """

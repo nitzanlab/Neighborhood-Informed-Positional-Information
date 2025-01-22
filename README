@@ -1,1 +1,59 @@
+This repository is composed of the analyses conducted in our paper,
+"Neighborhood-Informed Positional Information for Precise Cell Identity Specification"
+
+Steps:
+1. Download the datasets and define the directory paths :
+    a. Download the data available in the supplementary of Petkova et. al 2019 , Cell
+    "Optimal Decoding Optimal Decoding of Cellular Identities in a Genetic Network"
+
+
+    b. Change the directory paths to where the data is saved. Specifically, HOME_DIR.
+    c. In HOME_DIR define two subdirectories, one 'Drosophila_Data' where the downloaded data she be
+    and 'Droso_Res', where the decoding results will be saved to and accessed for conducting analyses
+    and plotting results
+2. install and import all packages included in _imports.py
+3. Produce all decoding maps - probability distributions over estimated positions
+given gap gene expression of local neighborhoods (neighborhood-informed) or of single positions
+(cell-independent).
+
+4. Reproduce all figures through the analyses conducted in functions included in the repository.
+
+
+Files:
+data directory:
+    1. _data.py:
+    functions pertaining to loading the expression data of the embryos.
+    2. _preprocessing.py:
+    functions pertaining to the preprocessing of the data such as filtering the subset of embryos
+    measured in a specific time range.
+    3. Data - An abstract class for handling the data and learning the likelihood distribution of gap gene expression
+    given estimated position when either including neighboring expression or not.
+    4. WildTypeDrosophila - Inherits from Data - implements the posterior position distribution calculation
+    including learning the likelihood distribution in Wild Type Drosophila embryos.
+
+src directory:
+    1. _constants.py:
+        all constant variables relevant in data loading, preprocessing, analysis, and plotting
+    2. _create_datasets.py:
+        function that calculate the decoding maps for both wild type and mutant data
+    3. _figures.py:
+        Here are the functions for plotting the panels in each figure.
+    4. _imports.py:
+        Includes all the package imports needed for data loading, preprocessing, analyses, and plotting
+    5. _utils.py:
+        includes functions for calculating different values for comparison and analyses of the decoding
+    6. _visualizations.py:
+       contains plot-related functions
+
+ test_results_analysis
+    1. TestResults.py
+        TestResult class implementation - this data structure holds the decoding map and its relevant
+        meta information.
+
+        Functions pertaining to comparing the decoding maps such as predicting based on it, the pair rule expression
+        prediction are located here.
+
+
+
+
 

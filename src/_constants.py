@@ -5,6 +5,18 @@ import os
 Directories:
 """
 
+"""
+1. Download the data available in the supplementary of Petkova et. al 2019 , Cell
+"Optimal Decoding Optimal Decoding of Cellular Identities in a Genetic Network"
+
+
+2. Change the directory paths to where the data is saved. Specifically, HOME_DIR.
+3. In HOME_DIR define two subdirectories, one 'Drosophila_Data' where the downloaded data she be
+and 'Droso_Res', where the decoding results will be saved to and accessed for conducting analyses
+and plotting results
+"""
+###CHANGE HOME_DIR path to the path
+
 HOME_DIR = r'C:\Users\micha\Neighborhood_Informed_PD'
 DROSO_RES_DIR = os.path.join(HOME_DIR, 'Droso_Res')
 DROSO_DATA_DIR_PATH = os.path.join(HOME_DIR, 'Drosophila_Data')
