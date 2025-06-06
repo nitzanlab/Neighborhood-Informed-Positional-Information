@@ -2,10 +2,24 @@ from data.Gastruloids import *
 from test_results_analysis.TestResults import *
 from src._utils import *
 
+
+def format_gastru_like_droso(gastru_dict)->pd.DataFrame:
+    num_samples = len(next(iter(gastru_dict.values())))
+
+    # Initialize a list of dictionaries, one per sample
+    rows = []
+    for sample_idx in range(num_samples):
+        sample_row = {gene: gastru_dict[gene][sample_idx] for gene in gastru_dict}
+        rows.append(sample_row)
+
+    # Convert list of dicts to DataFrame
+    gastru_df = pd.DataFrame(rows)
+    return gastru_df
+
 def calculate_gastru_decoding_maps_one_gene_group(encode_genes, data_path:str):
     """
     """
-    gastru = Gastruloids(data_path=data_path,training=True)
+    gastru = Gastruloids(data_path=data_path,training=True, edge_trim=20)
     gastu_test_data = load_gastruloid_data(data_path)
 
     #train and test cell-independent
@@ -15,7 +29,7 @@ def calculate_gastru_decoding_maps_one_gene_group(encode_genes, data_path:str):
     gasrtu_results_sc.save(GASTRU_RES_DIR)
 
     #train and test neighborhood-informed
-    decoding_wn = wt_droso.train_and_test_wn(test_data, encode_genes)
-    wt_droso_results_wn = TestResults(decoding_wn, 'wn_wt', wt_droso.means_wn, wt_droso.covs_wn, encode_genes,
+    decoding_wn = gastru.train_and_test_wn(gastu_test_data, encode_genes)
+    wt_droso_results_wn = TestResults(decoding_wn, 'wn_wt', gastru.means_wn, gastru.covs_wn, encode_genes,
                                       edge_trim=EDGE_TRIM)
-    wt_droso_results_wn.save(DROSO_RES_DIR)
+    wt_droso_results_wn.save(GASTRU_RES_DIR)

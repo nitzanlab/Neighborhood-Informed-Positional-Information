@@ -1,8 +1,9 @@
 from src._figures import *
 from src._utils import *
 from src._figures import *
-from src._create_datasets import *
+from src._create_datasets_droso import *
 from data.Gastruloids import *
+from src._create_datasets_gastruloids import *
 
 def calculate_and_save_all_decoding_maps():
     ##define directory paths in src._constants
@@ -26,15 +27,19 @@ def reproduce_all_results():
 
 
 if __name__ == '__main__':
-    with open(BRA_RES_PATH, 'rb') as f:
-        bra_dict = pickle.load(f)
-    with open(CDX2_RES_PATH, 'rb') as f:
-        cdx2_dict = pickle.load(f)
-    with open(FOXC1_RES_PATH, 'rb') as f:
-        foxc1_dict = pickle.load(f)
-    plot_gastruloids_data(bra_dict,'BRA')
-    plot_gastruloids_data(cdx2_dict, 'CDX2')
-    plot_gastruloids_data(foxc1_dict, 'FOXC1')
+    with open(BRA_10_PATH, 'rb') as f:
+        bra_10dict = pickle.load(f)
+    format_gastru_like_droso(bra_10dict)
+    #calculate_gastru_decoding_maps_one_gene_group(['BRA','SOX2'], data_path=BRA_10_PATH)
+    #calculate_all_gene_subset_decoding_maps_WT()
+
+    # with open(CDX2_RES_PATH, 'rb') as f:
+    #     cdx2_dict = pickle.load(f)
+    # with open(FOXC1_RES_PATH, 'rb') as f:
+    #     foxc1_dict = pickle.load(f)
+    #plot_gastruloids_data(bra_dict,'BRA')
+    #plot_gastruloids_data(bra_10dict, 'BRA_10')
+    #plot_gastruloids_data(foxc1_dict, 'FOXC1')
     #set_style()
     #reproduce_all_results()
 
