@@ -96,3 +96,9 @@ VMAXS_ONE_GENE = [-4,-4]
 THREE_GENES_EXAMPLE_GENES = ['Kr', 'Gt', 'Hb']
 VMAXS_THREE_GENES = [0.03, 0.03]
 DECODING_TYPES = ['wn', 'sc']
+
+
+##Gastruloids
+BRA_RES_PATH = r"C:\Users\micha\Downloads\results_Bra.pkl"
+CDX2_RES_PATH =r"C:\Users\micha\Downloads\results_CDx2.pkl"
+FOXC1_RES_PATH = r"C:\Users\micha\Downloads\results_Foxc1.pkl"
