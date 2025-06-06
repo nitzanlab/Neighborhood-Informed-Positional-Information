@@ -17,6 +17,7 @@ HOME_DIR = r'C:\Users\micha\Neighborhood_Informed_PD'
 DROSO_RES_DIR = os.path.join(HOME_DIR, 'Droso_Res')
 DROSO_DATA_DIR_PATH = os.path.join(HOME_DIR, 'Drosophila_Data')
 WHERE = os.path.join(DROSO_DATA_DIR_PATH,'Gap')
+GASTRU_RES_DIR = os.path.join(HOME_DIR, 'Gastruloids')
 
 MUTANT_PAIR_RULE_DIR_PATH = os.path.join(DROSO_DATA_DIR_PATH, 'Pair_rule\pair_rule_data_raw_dorsal_')
 MUTANT_GAP_GENE_DIR_PATH = os.path.join(DROSO_DATA_DIR_PATH, 'Gap\gap_data_raw_dorsal_wt_')
@@ -99,6 +100,7 @@ DECODING_TYPES = ['wn', 'sc']
 
 
 ##Gastruloids
+BRA_10_PATH = r"C:\Users\micha\Downloads\results_Bra_10.pkl"
 BRA_RES_PATH = r"C:\Users\micha\Downloads\results_Bra.pkl"
 CDX2_RES_PATH =r"C:\Users\micha\Downloads\results_CDx2.pkl"
 FOXC1_RES_PATH = r"C:\Users\micha\Downloads\results_Foxc1.pkl"
