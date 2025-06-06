@@ -29,8 +29,9 @@ def reproduce_all_results():
 if __name__ == '__main__':
     with open(BRA_10_PATH, 'rb') as f:
         bra_10dict = pickle.load(f)
-    format_gastru_like_droso(bra_10dict)
-    #calculate_gastru_decoding_maps_one_gene_group(['BRA','SOX2'], data_path=BRA_10_PATH)
+    #format_gastru_like_droso(bra_10dict)
+    calculate_gastru_decoding_maps_one_gene_group(['Bra','Sox2'], data_path=BRA_10_PATH)
+    #plot_decoding_maps([['Bra','Sox2']], ['sc_gastru'], VMAXS_THREE_GENES, xlim=False, results_dir=GASTRU_RES_DIR)
     #calculate_all_gene_subset_decoding_maps_WT()
 
     # with open(CDX2_RES_PATH, 'rb') as f:

@@ -1,7 +1,7 @@
 
 from src._constants import *
 from data._preprocessing import *
-from data._data import *
+from data.droso_data import *
 from data.Data import *
 
 class WildTypeDrosophilaData(Data):

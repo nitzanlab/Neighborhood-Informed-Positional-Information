@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from src._imports import *
 from src._constants import *
 from data._preprocessing import *
-from data._data import *
+from data.droso_data import *
 from data.WildTypeDrosophila import *
 from src._utils import *
 #### panels b and c, gap gene and pair rule genes pairwise correlations:
@@ -201,13 +201,13 @@ def plot_all_decoding_maps_comparison_wt():
         print(gene_subset)
         plot_decoding_maps([gene_subset], WT_DECODE_TYPES,VMAXS_THREE_GENES, xlim=False)
 
-def plot_decoding_maps(genes_subset_list, types, vmaxs, xlim):
+def plot_decoding_maps(genes_subset_list, types, vmaxs, xlim, results_dir=DROSO_RES_DIR):
     """
     This function plots the decoding maps of the position posterior distribution
     """
     for i,gene_subset in enumerate(genes_subset_list):
         for type in types:
-            decoding_map_obj = TestResults.from_pickle(DROSO_RES_DIR, type, gene_subset)
+            decoding_map_obj = TestResults.from_pickle(results_dir, type, gene_subset)
             #decoding_map_obj.normalize_decoding_map()
             decoding_map_obj.plot_decoding_map(' '.join(gene_subset), vmax=vmaxs[i], xlim=xlim)
 
@@ -508,8 +508,9 @@ def plot_all_mutant_results(mutant_type):
     """
     This function plots all of the mutant results shown in the paper
     """
-    plot_mutant_gap_gene(mutant_type)
-    plot_decoding_maps_mutants([mutant_type], DECODING_TYPES)
+    #plot_mutant_gap_gene(mutant_type)
+    #plot_decoding_maps_mutants([mutant_type], DECODING_TYPES)
+
     ##binned over positions
     # reconstructions
     #aggregated results
@@ -556,7 +557,7 @@ def plot_posterior_standard_deviation_comparison(wn_stds, sc_stds):
     # Add labels and title
     ax.set_xticks([1, 2])
     ax.set_xticklabels(labels)
-    ax.set_ylabel('Posterior Standard Deviation')
+    ax.set_ylabel('posterior standard deviation')
 
     # Add a legend
     legend_patches = [
@@ -640,9 +641,14 @@ def plot_decoding_map_uncertainty_mutants_binned_positions(mutant_type):
     sc_map = TestResults.from_pickle(DROSO_RES_DIR, f'{mutant_type}_sc', GAP_GENES)
     wn_stds = get_std_per_position_decoding_map(wn_map.normalized_decoding_map)
     sc_stds= get_std_per_position_decoding_map(sc_map.normalized_decoding_map)[:,1:-1]
-    #plot_posterior_standard_deviation_comparison(wn_stds, sc_stds)
+    plot_posterior_standard_deviation_comparison(wn_stds, sc_stds)
     #plot_positional_information_in_bits()
-
+    pvals_sig = 0
+    print(ttest_ind(wn_stds.flatten(), sc_stds.flatten()))
+    for i in range(wn_stds.shape[0]):
+        ttest, pval = ttest_ind(wn_stds[i], sc_stds[i])
+        pvals_sig += 1 if pval <=0.05 else 0
+    print(pvals_sig/wn_stds.shape[0])
     width = 0.4
     bin_size = 50
     num_bins = wn_stds.shape[1] // bin_size

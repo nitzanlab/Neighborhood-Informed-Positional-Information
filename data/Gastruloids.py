@@ -27,20 +27,20 @@ class Gastruloids(Data):
 
     def preprocess(self, data=None, edge_trim=None): #preprcoess training data
         print("Preprocessing Gastruloid data")
-        all_training_data = load_gastruloid_data(self.data_path)
+        all_training_data = format_gastru_like_droso(load_gastruloid_data(self.data_path))
         self.meta_data = ''
         self.define_data_structures(all_training_data)
 
 
     def define_data_structures(self, normalized_data):
-        gene_exp_data = normalized_data[GAP_GENES]
+        gene_exp_data = normalized_data
         self.genes = {gene: i for i, gene in enumerate(gene_exp_data.columns)}
-        self.train_data = reshape_gene_data_to_arr(gene_exp_data)
+        self.train_data = reshape_gene_data_to_arr(gene_exp_data, self.genes)
         if self.edge_trim is not None:
             self.train_data = self.train_data[:,self.edge_trim:-self.edge_trim,:]
 
 
-    def train_wn(self, decoding_genes=GAP_GENES):
+    def train_wn(self, decoding_genes):
         decoding_genes_idx = self.get_decode_genes_idx(decoding_genes)
         train_data_sbst_genes = self.train_data[:,:,decoding_genes_idx]
         train_wn_data = self.reshape_data_for_wn(train_data_sbst_genes)
@@ -56,19 +56,19 @@ class Gastruloids(Data):
         training_data = self.train_data[:,:,decoding_genes_idx]
         self.std_sc = get_cov(training_data)
 
-    def test_wn(self, test_data, decoding_genes=GAP_GENES):
+    def test_wn(self, test_data, decoding_genes):
         processed_test_data = self.prepare_test_data(test_data, decoding_genes)
         reshaped_test_wn = self.reshape_data_for_wn(processed_test_data)
         decoding_map = self.get_position_distribution(reshaped_test_wn, self.means_wn, self.covs_wn)
         return decoding_map
 
-    def test_sc(self, test_data, decoding_genes=GAP_GENES):
+    def test_sc(self, test_data, decoding_genes):
         processed_test_data = self.prepare_test_data(test_data, decoding_genes)
         decoding_map = self.get_position_distribution(processed_test_data, self.means_sc, self.std_sc)
         return decoding_map
     def prepare_test_data(self, test_data, decoding_genes):
         decoding_genes_idx = self.get_decode_genes_idx(decoding_genes)
-        processed_test_data = reshape_gene_data_to_arr(test_data)[:, :, decoding_genes_idx]
+        processed_test_data = reshape_gene_data_to_arr(test_data, decoding_genes)[:, :, decoding_genes_idx]
         if self.edge_trim is not None:
             processed_test_data = processed_test_data[:, self.edge_trim:-self.edge_trim, :]
         return processed_test_data
@@ -133,9 +133,9 @@ def get_cov(training_data):
         covs[pos] = np.cov(training_data[:, pos, :], rowvar=False)
     return covs
 
-def reshape_gene_data_to_arr(gene_exp_data):
+def reshape_gene_data_to_arr(gene_exp_data, genes):
     reshaped_gene_data = []
-    for gene in GAP_GENES:
+    for gene in genes:
         reshaped_gene_data.append(np.vstack(gene_exp_data[gene]))
     reshaped_data = np.dstack(np.array(reshaped_gene_data))
     return reshaped_data

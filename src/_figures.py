@@ -47,13 +47,13 @@ def plot_figure3_panels():
     for Osk mutant background embryos
     :return:
     """
-    plot_wt_gap_gene()
+    #plot_wt_gap_gene()
     plot_all_mutant_results(mutant_type='osk')
 
     ##mutant pair-rule prediction and errors:
-    plot_mutant_pr_predictions_and_errors(mutant_type='osk', plot_binned_position_errors=True)
+    #plot_mutant_pr_predictions_and_errors(mutant_type='osk', plot_binned_position_errors=True)
 
-    plot_one_mutation_expression_correlation()
+    #plot_one_mutation_expression_correlation()
 
 
 

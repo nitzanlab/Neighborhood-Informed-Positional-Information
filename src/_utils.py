@@ -1,6 +1,6 @@
 from src._constants import *
 from test_results_analysis.TestResults import *
-from data._data import *
+from data.droso_data import *
 def set_style():
     """
     This function sets the style of the plots to be consistent and is fun before each plotting
