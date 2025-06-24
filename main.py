@@ -27,11 +27,23 @@ def reproduce_all_results():
 
 
 if __name__ == '__main__':
-    with open(BRA_10_PATH, 'rb') as f:
-        bra_10dict = pickle.load(f)
-    #format_gastru_like_droso(bra_10dict)
-    calculate_gastru_decoding_maps_one_gene_group(['Bra','Sox2'], data_path=BRA_10_PATH)
-    #plot_decoding_maps([['Bra','Sox2']], ['sc_gastru'], VMAXS_THREE_GENES, xlim=False, results_dir=GASTRU_RES_DIR)
+    with open(os.path.join(NEURAL_TUBE_WT_PATH,'expressions_h=5.pkl'), 'rb') as f:
+        nt_wt_5 = pickle.load(f)
+    print(nt_wt_5)
+
+
+    # with open(BRA_10_PATH, 'rb') as f:
+    #     bra_10dict = pickle.load(f)
+    # format_gastru_like_droso(bra_10dict)
+    # genes = ['Cdx2', 'Sox2']
+    calculate_gastru_decoding_maps_one_gene_group(genes, data_path=CDX2_RES_PATH)
+    # print('wn')
+    # plot_decoding_maps([genes], ['wn_gastru'], VMAXS_THREE_GENES, xlim=False, results_dir=GASTRU_RES_DIR)
+    # print('sc')
+    # plot_decoding_maps([genes], ['sc_gastru'], VMAXS_THREE_GENES, xlim=False,
+    #                    results_dir=GASTRU_RES_DIR)
+    #calculate_gastru_decoding_maps_one_gene_group(['Cdx2','Sox2'], data_path=CDX2_RES_PATH)
+    #plot_decoding_maps([['Cdx2','Sox2']], ['sc_gastru', 'wn_gastru'], VMAXS_THREE_GENES, xlim=False, results_dir=GASTRU_RES_DIR)
     #calculate_all_gene_subset_decoding_maps_WT()
 
     # with open(CDX2_RES_PATH, 'rb') as f:

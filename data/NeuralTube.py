@@ -7,7 +7,7 @@ from data.droso_data import *
 from data.Data import *
 from data.gastruloid_data import *
 
-class Gastruloids(Data):
+class NeuralTube(Data):
     def __init__(self, data_path, data=None, training=False, save_training=False, save_dir=None, load_dir=None, edge_trim=None):
         self.data_path = data_path
         self.meta_data = None  # includes orient, dist, age, genotype,..
@@ -144,21 +144,21 @@ def reshape_gene_data_to_arr(gene_exp_data, genes):
 
 
 
-def plot_gastruloids_data(data_dict, dict_name):
+def plot_neuraltube_data(data_dict, dict_name):
     plt.figure(figsize=(12, 6))
 
     for key in data_dict:
-        arr = np.array(data_dict[key])  # shape should be (49, 200)
-        mean_vals = np.mean(arr, axis=0)  # mean across the 49 rows
-        std_vals = np.std(arr, axis=0)  # std across the 49 rows
+        arr = np.array(data_dict[key])
+        mean_vals = np.mean(arr, axis=0)
+        std_vals = np.std(arr, axis=0)
 
-        x = np.arange(arr.shape[1])  # 0 to 199 (200 points)
+        x = np.arange(arr.shape[1])
 
         plt.plot(x, mean_vals, label=key)
         plt.fill_between(x, mean_vals - std_vals, mean_vals + std_vals, alpha=0.3)
 
     plt.xlabel('x/L')
-    plt.ylabel('Mean ± Std over 49 samples')
+    plt.ylabel('Mean ± Std over samples')
     plt.title(f'Mean ± Std Dev over Positions for Each Key- {dict_name}')
     plt.legend()
     plt.ylim(0,4000)

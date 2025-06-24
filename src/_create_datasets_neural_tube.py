@@ -1,9 +1,5 @@
-from data.Gastruloids import *
 from test_results_analysis.TestResults import *
 from src._utils import *
-
-
-
 
 def calculate_gastru_decoding_maps_one_gene_group(encode_genes, data_path:str):
     """

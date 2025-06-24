@@ -104,3 +104,10 @@ BRA_10_PATH = r"C:\Users\micha\Downloads\results_Bra_10.pkl"
 BRA_RES_PATH = r"C:\Users\micha\Downloads\results_Bra.pkl"
 CDX2_RES_PATH =r"C:\Users\micha\Downloads\results_CDx2.pkl"
 FOXC1_RES_PATH = r"C:\Users\micha\Downloads\results_Foxc1.pkl"
+
+##Neural Tube
+NEURAL_TUBE_WT_PATH = r"C:\Users\micha\thesis\code\data\position_decoding\neural_tube\neural_tube"
+NEURAL_TUBE_HYPO_PATH = r"C:\Users\micha\thesis\code\data\position_decoding\neural_tube\neural_tube_hypo"
+
+NEURAL_TUBE_SET_A_GENES = ['GBS-GFP', 'pSmad']
+NEURAL_TUBE_SET_B_GENES = ['Nkx6.1', 'Pax3']
