@@ -4,6 +4,7 @@ from src._figures import *
 from src._create_datasets_droso import *
 from data.Gastruloids import *
 from src._create_datasets_gastruloids import *
+from src._create_datasets_neural_tube import *
 
 def calculate_and_save_all_decoding_maps():
     ##define directory paths in src._constants
@@ -27,16 +28,16 @@ def reproduce_all_results():
 
 
 if __name__ == '__main__':
-    with open(os.path.join(NEURAL_TUBE_WT_PATH,'expressions_h=5.pkl'), 'rb') as f:
-        nt_wt_5 = pickle.load(f)
-    print(nt_wt_5)
-
+    # with open(os.path.join(NEURAL_TUBE_WT_PATH,'expressions_h=5.pkl'), 'rb') as f:
+    #     nt_wt_5 = pickle.load(f)
+    nt_path = os.path.join(NEURAL_TUBE_WT_PATH,'expressions_h=45.pkl')
+    calculate_neural_tube_decoding_maps_one_gene_group(NEURAL_TUBE_SET_A_GENES, data_path=nt_path)
 
     # with open(BRA_10_PATH, 'rb') as f:
     #     bra_10dict = pickle.load(f)
     # format_gastru_like_droso(bra_10dict)
     # genes = ['Cdx2', 'Sox2']
-    calculate_gastru_decoding_maps_one_gene_group(genes, data_path=CDX2_RES_PATH)
+    #calculate_gastru_decoding_maps_one_gene_group(genes, data_path=CDX2_RES_PATH)
     # print('wn')
     # plot_decoding_maps([genes], ['wn_gastru'], VMAXS_THREE_GENES, xlim=False, results_dir=GASTRU_RES_DIR)
     # print('sc')

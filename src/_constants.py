@@ -18,6 +18,7 @@ DROSO_RES_DIR = os.path.join(HOME_DIR, 'Droso_Res')
 DROSO_DATA_DIR_PATH = os.path.join(HOME_DIR, 'Drosophila_Data')
 WHERE = os.path.join(DROSO_DATA_DIR_PATH,'Gap')
 GASTRU_RES_DIR = os.path.join(HOME_DIR, 'Gastruloids')
+NEURAL_TUBE_RES_DIR = os.path.join(HOME_DIR, 'Neural_Tube')
 
 MUTANT_PAIR_RULE_DIR_PATH = os.path.join(DROSO_DATA_DIR_PATH, 'Pair_rule\pair_rule_data_raw_dorsal_')
 MUTANT_GAP_GENE_DIR_PATH = os.path.join(DROSO_DATA_DIR_PATH, 'Gap\gap_data_raw_dorsal_wt_')

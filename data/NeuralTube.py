@@ -27,19 +27,21 @@ class NeuralTube(Data):
 
     def preprocess(self, data=None, edge_trim=None): #preprcoess training data
         print("Preprocessing Gastruloid data")
-        all_training_data = format_gastru_like_droso(load_gastruloid_data(self.data_path))
+        all_training_data = load_gastruloid_data(self.data_path)
+        self.train_data = all_training_data
         self.meta_data = ''
         self.define_data_structures(all_training_data)
 
 
     def define_data_structures(self, normalized_data):
         gene_exp_data = normalized_data
-        self.genes = {gene: i for i, gene in enumerate(gene_exp_data.columns)}
-        training_arr = reshape_gene_data_to_arr(gene_exp_data, self.genes)
-        #TODO handle nans
-        self.train_data = np.nan_to_num(training_arr, nan=0.0)
-        if self.edge_trim is not None:
-            self.train_data = self.train_data[:,self.edge_trim:-self.edge_trim,:]
+        self.genes = {gene: i for i, gene in enumerate(gene_exp_data.keys())}
+        #training_arr = reshape_gene_data_to_arr(gene_exp_data, self.genes)
+        #TODO handle nans n
+        # need to trim and turn to array without nans per gene
+        # self.train_data = np.nan_to_num(training_arr, nan=0.0)
+        # if self.edge_trim is not None:
+        #     self.train_data = self.train_data[:,self.edge_trim:-self.edge_trim,:]
 
 
     def train_wn(self, decoding_genes):
@@ -52,11 +54,30 @@ class NeuralTube(Data):
             self.save_dir('wn')
 
     def learn_mean_sc(self, decoding_genes_idx=np.arange(len(GAP_GENES))):
-        self.means_sc = np.mean(self.train_data[:, : , decoding_genes_idx], axis=0)
+        gene_means = []
+        for gene in self.genes.keys():
+            if self.genes[gene] in decoding_genes_idx:
+                gene_data = self.train_data[gene]
+                gene_data_arr = np.vstack(gene_data)
+                gene_means.append(gene_data_arr.mean(axis=0))
+        self.means_sc = np.array(gene_means).T
 
     def learn_covariance_sc(self, decoding_genes_idx=np.arange(len(GAP_GENES))):
-        training_data = self.train_data[:,:,decoding_genes_idx]
-        self.std_sc = get_cov(training_data)
+        """
+        The genes are measured on separate embryos, so we conduct the harshest assumption - that the gene expression
+        of the genes is independent
+        :param decoding_genes_idx:
+        :return:
+        """
+        covs = np.zeros((self.means_sc.shape[0], 2, 2))
+        i=0
+        for gene in self.genes.keys():
+            if self.genes[gene] in decoding_genes_idx:
+                gene_data = self.train_data[gene]
+                gene_data_arr = np.vstack(gene_data)
+                covs[:,i,i] = np.var(gene_data_arr, axis=0)
+                i+=1
+        self.std_sc = covs
 
     def test_wn(self, test_data, decoding_genes):
         processed_test_data = self.prepare_test_data(test_data, decoding_genes)
