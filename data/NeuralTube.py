@@ -199,14 +199,14 @@ class NeuralTube(Data):
         #TODO add calculation and plot
         return position_error
 
-    def plot_comparison_position_inf_GT(self, genes):
+    def plot_comparison_position_inf_GT(self, genes, title):
         self.calculate_positional_error_per_decoding_map_GT_positions(genes)
         position_error_sc = self.calculate_position_inf_GT('sc')
         position_error_wn = self.calculate_position_inf_GT('wn')
         plt.plot(np.linspace(0,1, len(position_error_sc)) , position_error_sc, label='sc')
         plt.plot(np.linspace(0,1,len(position_error_wn)), position_error_wn, label='wn')
         plt.legend()
-        plt.title('position information ground truth positions Neural Tube')
+        plt.title(f'position information ground truth positions Neural Tube time {title}')
         plt.ylim(0,100)
         plt.show()
 

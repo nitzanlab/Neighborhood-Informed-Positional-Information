@@ -87,9 +87,12 @@ class Gastruloids(Data):
 
 
     def learn_mean_wn(self, train_data_wn=None):
-        self.means_wn = np.mean(train_data_wn, axis=0)
+        reshaped_wn_position_means = np.concatenate(
+            (self.means_sc[:-2, :], self.means_sc[1:-1, :], self.means_sc[2:, :]), axis=1)
+        self.means_wn = reshaped_wn_position_means
 
     def learn_covariance_wn(self, train_data_wn=None):
+        #TODO depending on which genes were measured together
         self.covs_wn = get_cov(train_data_wn)
 
     def reshape_data_for_wn(self, data):
@@ -125,6 +128,45 @@ class Gastruloids(Data):
         plt.ylabel(EXP_Y_LABEL)
         plt.legend()
         plt.tight_layout()
+        plt.show()
+
+    def calculate_positional_error_per_decoding_map_GT_positions(self, decoding_genes):
+        decoding_genes_idx = self.get_decode_genes_idx(decoding_genes)
+        self.learn_mean_sc(decoding_genes_idx)
+        self.learn_covariance_sc(decoding_genes_idx)
+        self.learn_mean_wn()
+        self.learn_covariance_wn()
+
+    def calculate_position_inf_GT(self, decoding_type):
+        if decoding_type == "sc":
+            mean_exp = self.means_sc[1:-1, :]
+            covs = self.std_sc[1:-1, :, :]
+        elif decoding_type == "wn":
+            mean_exp = self.means_wn
+            covs = self.covs_wn
+        else:
+            print("Unknown decoding")
+            return
+        num_genes = mean_exp.shape[1]
+        num_pos = mean_exp.shape[0]
+        mean_exp_slopes = np.diff(mean_exp, axis=0)
+        mean_exp_slopes = np.vstack([mean_exp_slopes, mean_exp_slopes[-1]])
+        position_error = np.zeros(num_pos)
+        for pos in range(num_pos):
+            position_error[pos] = 1 / (mean_exp_slopes[pos, :] @ np.linalg.inv(
+                covs[pos, :, :]) @ mean_exp_slopes[pos, :])
+        # TODO add calculation and plot
+        return position_error
+
+    def plot_comparison_position_inf_GT(self, genes):
+        self.calculate_positional_error_per_decoding_map_GT_positions(genes)
+        position_error_sc = self.calculate_position_inf_GT('sc')
+        position_error_wn = self.calculate_position_inf_GT('wn')
+        plt.plot(np.linspace(0, 1, len(position_error_sc)), position_error_sc, label='sc')
+        plt.plot(np.linspace(0, 1, len(position_error_wn)), position_error_wn, label='wn')
+        plt.legend()
+        plt.title('position information ground truth positions Neural Tube')
+        plt.ylim(0, 100)
         plt.show()
 
 def get_cov(training_data):
