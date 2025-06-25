@@ -1,3 +1,5 @@
+import matplotlib.pyplot as plt
+
 from src._imports import *
 
 
@@ -46,9 +48,7 @@ class NeuralTube(Data):
 
     def train_wn(self, decoding_genes):
         decoding_genes_idx = self.get_decode_genes_idx(decoding_genes)
-        train_data_sbst_genes = self.train_data[:,:,decoding_genes_idx]
-        train_wn_data = self.reshape_data_for_wn(train_data_sbst_genes)
-        self.learn_mean_wn(train_wn_data,decoding_genes_idx)
+        self.learn_mean_wn(decoding_genes_idx)
         self.learn_covariance_wn(train_wn_data, decoding_genes_idx)
         if self.save_training:
             self.save_dir('wn')
@@ -108,10 +108,32 @@ class NeuralTube(Data):
 
 
     def learn_mean_wn(self, train_data_wn=None):
-        self.means_wn = np.mean(train_data_wn, axis=0)
+        reshaped_wn_position_means = np.concatenate(
+           (self.means_sc[:-2, :], self.means_sc[1:-1, :], self.means_sc[2:, :]), axis=1)
+        self.means_wn = reshaped_wn_position_means
 
     def learn_covariance_wn(self, train_data_wn=None):
-        self.covs_wn = get_cov(train_data_wn)
+        num_positions = self.means_sc.shape[0]-2
+        covs_wn = np.zeros((num_positions, len(NEURAL_TUBE_SET_A_GENES)*3, len(NEURAL_TUBE_SET_A_GENES)*3))
+        for i,gene in enumerate(NEURAL_TUBE_SET_A_GENES):
+            gene_data = self.train_data[gene]
+            gene_data_arr = np.vstack(gene_data)
+            gene_data_arr_wn = sliding_window_view(gene_data_arr, window_shape=3, axis=1)
+            for pos in range(num_positions):
+                covs_wn_pos = np.cov(gene_data_arr_wn[:, pos, :], rowvar=False)
+                covs_wn[pos, i, i] = covs_wn_pos[0,0]
+                covs_wn[pos, i, i+2] = covs_wn_pos[0, 1]
+                covs_wn[pos, i, i + 4] = covs_wn_pos[0, 2]
+
+                covs_wn[pos, i+2, i] = covs_wn_pos[1, 0]
+                covs_wn[pos, i+2, i + 2] = covs_wn_pos[1, 1]
+                covs_wn[pos, i+2, i + 4] = covs_wn_pos[1, 2]
+
+                covs_wn[pos, i+4, i ] = covs_wn_pos[2, 0]
+                covs_wn[pos, i+4, i + 2] = covs_wn_pos[2, 1]
+                covs_wn[pos, i+4, i + 4] = covs_wn_pos[2, 2]
+        self.covs_wn = covs_wn
+
 
     def reshape_data_for_wn(self, data):
         reshaped_wn_data = np.concatenate(
@@ -147,6 +169,47 @@ class NeuralTube(Data):
         plt.legend()
         plt.tight_layout()
         plt.show()
+
+    def calculate_positional_error_per_decoding_map_GT_positions(self, decoding_genes):
+        decoding_genes_idx = self.get_decode_genes_idx(decoding_genes)
+        self.learn_mean_sc(decoding_genes_idx)
+        self.learn_covariance_sc(decoding_genes_idx)
+        self.learn_mean_wn()
+        self.learn_covariance_wn()
+
+
+    def calculate_position_inf_GT(self, decoding_type):
+        if decoding_type == "sc":
+            mean_exp = self.means_sc[1:-1,:]
+            covs = self.std_sc[1:-1,:,:]
+        elif decoding_type == "wn":
+            mean_exp = self.means_wn
+            covs = self.covs_wn
+        else:
+            print("Unknown decoding")
+            return
+        num_genes = mean_exp.shape[1]
+        num_pos = mean_exp.shape[0]
+        mean_exp_slopes = np.diff(mean_exp, axis=0)
+        mean_exp_slopes = np.vstack([mean_exp_slopes, mean_exp_slopes[-1]])
+        position_error = np.zeros(num_pos)
+        for pos in range(num_pos):
+            position_error[pos] = 1/(mean_exp_slopes[pos, :] @ np.linalg.inv(
+                covs[pos, :, :]) @ mean_exp_slopes[pos, :])
+        #TODO add calculation and plot
+        return position_error
+
+    def plot_comparison_position_inf_GT(self, genes):
+        self.calculate_positional_error_per_decoding_map_GT_positions(genes)
+        position_error_sc = self.calculate_position_inf_GT('sc')
+        position_error_wn = self.calculate_position_inf_GT('wn')
+        plt.plot(np.linspace(0,1, len(position_error_sc)) , position_error_sc, label='sc')
+        plt.plot(np.linspace(0,1,len(position_error_wn)), position_error_wn, label='wn')
+        plt.legend()
+        plt.title('position information ground truth positions Neural Tube')
+        plt.ylim(0,100)
+        plt.show()
+
 
 def get_cov(training_data):
     num_positions = training_data.shape[1]

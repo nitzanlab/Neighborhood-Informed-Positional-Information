@@ -13,6 +13,7 @@ def set_style():
     plt.rcParams.update({'savefig.dpi': 300})
 
 
+
 def caclulate_positional_error_per_decoding_map_MAP_positions(decoding_type):
     """
     This function calculates the MAP position error  for each position decoding map.

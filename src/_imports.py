@@ -7,6 +7,7 @@ import os
 from itertools import combinations
 import pickle
 import numpy as np
+from numpy.lib.stride_tricks import sliding_window_view
 import matplotlib.pyplot as plt
 import pandas as pd
 from scipy.io import loadmat

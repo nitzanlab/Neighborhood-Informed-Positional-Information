@@ -31,7 +31,11 @@ if __name__ == '__main__':
     # with open(os.path.join(NEURAL_TUBE_WT_PATH,'expressions_h=5.pkl'), 'rb') as f:
     #     nt_wt_5 = pickle.load(f)
     nt_path = os.path.join(NEURAL_TUBE_WT_PATH,'expressions_h=45.pkl')
-    calculate_neural_tube_decoding_maps_one_gene_group(NEURAL_TUBE_SET_A_GENES, data_path=nt_path)
+    neuraltube = NeuralTube(data_path=nt_path, training=True, edge_trim=20)
+    # neuraltube.calculate_positional_error_per_decoding_map_GT_positions(NEURAL_TUBE_SET_A_GENES)
+    # position_error_sc = neuraltube.calculate_position_inf_GT('sc')
+    neuraltube.plot_comparison_position_inf_GT(NEURAL_TUBE_SET_A_GENES)
+    #calculate_neural_tube_decoding_maps_one_gene_group(NEURAL_TUBE_SET_A_GENES, data_path=nt_path)
 
     # with open(BRA_10_PATH, 'rb') as f:
     #     bra_10dict = pickle.load(f)
