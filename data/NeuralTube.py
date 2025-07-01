@@ -210,6 +210,79 @@ class NeuralTube(Data):
         plt.ylim(0,100)
         plt.show()
 
+def plot_all_time_points(title):
+    for time in NEURAL_TUBE_TIMES:
+        if title == 'hypo':
+            gene_exp_file = f'mutants_h={time}.pkl'
+            data_path = NEURAL_TUBE_HYPO_PATH
+        else:
+            gene_exp_file = f'expressions_h={time}.pkl'
+            data_path = NEURAL_TUBE_WT_PATH
+        nt_path = os.path.join(data_path, gene_exp_file)
+        neuraltube = NeuralTube(data_path=nt_path, training=True, edge_trim=20)
+        neuraltube.plot_comparison_position_inf_GT(NEURAL_TUBE_SET_A_GENES, title=f'{time} {title}')
+
+def plot_summarized_neural_tube_over_axis_over_timepoints(genes):
+    sc_errors_wt = []
+    wn_errors_wt = []
+    sc_errors_hypo = []
+    wn_errors_hypo = []
+    for time in NEURAL_TUBE_TIMES:
+        nt_path_hypo = os.path.join(NEURAL_TUBE_HYPO_PATH, f'mutants_h={time}.pkl')
+        neuraltube_hypo = NeuralTube(data_path=nt_path_hypo, training=True, edge_trim=20)
+        neuraltube_hypo.calculate_positional_error_per_decoding_map_GT_positions(genes)
+        position_error_sc_hypo = neuraltube_hypo.calculate_position_inf_GT('sc')
+        position_error_wn_hypo = neuraltube_hypo.calculate_position_inf_GT('wn')
+        sc_errors_hypo.append(position_error_sc_hypo)
+        wn_errors_hypo.append(position_error_wn_hypo)
+
+        nt_path_wt = os.path.join(NEURAL_TUBE_WT_PATH, f'expressions_h={time}.pkl')
+        neuraltube_wt = NeuralTube(data_path=nt_path_wt, training=True, edge_trim=20)
+        neuraltube_wt.calculate_positional_error_per_decoding_map_GT_positions(genes)
+        position_errors_sc_wt = neuraltube_wt.calculate_position_inf_GT('sc')
+        position_error_wn_wt = neuraltube_wt.calculate_position_inf_GT('wn')
+        sc_errors_wt.append(position_errors_sc_wt)
+        wn_errors_wt.append(position_error_wn_wt)
+    all_errors = np.concatenate(sc_errors_hypo + wn_errors_hypo + sc_errors_wt + wn_errors_wt)
+    ymin, ymax = np.min(all_errors), np.max(all_errors)
+    ymin, ymax = max(0, ymin - 0.05 * abs(ymin)), ymax + 0.05 * abs(ymax)
+    ymax = 200
+    fig, axs = plt.subplots(1, 2, figsize=(14, 6), sharey=True)
+
+    # WT
+    axs[0].boxplot(sc_errors_wt, positions=np.array(range(len(NEURAL_TUBE_TIMES))) - 0.15, widths=0.3,
+                   patch_artist=True, boxprops=dict(facecolor='lightblue'))
+    axs[0].boxplot(wn_errors_wt, positions=np.array(range(len(NEURAL_TUBE_TIMES))) + 0.15, widths=0.3,
+                   patch_artist=True, boxprops=dict(facecolor='orange'))
+    axs[0].set_title('WT')
+    axs[0].set_xticks(range(len(NEURAL_TUBE_TIMES)))
+    axs[0].set_xticklabels(NEURAL_TUBE_TIMES)
+    axs[0].set_ylim([ymin, ymax])
+    axs[0].set_xlabel('Time')
+    axs[0].set_ylabel('Positional Error')
+    axs[0].legend([plt.Rectangle((0, 0), 1, 1, facecolor='lightblue'), plt.Rectangle((0, 0), 1, 1, facecolor='orange')],
+                  ['sc', 'wn'], loc='upper right')
+
+    # Hypo
+    axs[1].boxplot(sc_errors_hypo, positions=np.array(range(len(NEURAL_TUBE_TIMES))) - 0.15, widths=0.3,
+                   patch_artist=True, boxprops=dict(facecolor='lightblue'))
+    axs[1].boxplot(wn_errors_hypo, positions=np.array(range(len(NEURAL_TUBE_TIMES))) + 0.15, widths=0.3,
+                   patch_artist=True, boxprops=dict(facecolor='orange'))
+    axs[1].set_title('Hypo')
+    axs[1].set_xticks(range(len(NEURAL_TUBE_TIMES)))
+    axs[1].set_xticklabels(NEURAL_TUBE_TIMES)
+    axs[1].set_ylim([ymin, ymax])
+    axs[1].set_xlabel('Time')
+    axs[1].legend([plt.Rectangle((0, 0), 1, 1, facecolor='lightblue'), plt.Rectangle((0, 0), 1, 1, facecolor='orange')],
+                  ['sc', 'wn'], loc='upper right')
+
+    plt.tight_layout()
+    plt.show()
+
+
+
+
+
 
 def get_cov(training_data):
     num_positions = training_data.shape[1]
