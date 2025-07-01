@@ -30,15 +30,15 @@ def reproduce_all_results():
 if __name__ == '__main__':
     # with open(os.path.join(NEURAL_TUBE_WT_PATH,'expressions_h=5.pkl'), 'rb') as f:
     #     nt_wt_5 = pickle.load(f)
-    plot_summarized_neural_tube_over_axis_over_timepoints(NEURAL_TUBE_SET_A_GENES)
+    #plot_summarized_neural_tube_over_axis_over_timepoints(NEURAL_TUBE_SET_A_GENES)
 
     #calculate_neural_tube_decoding_maps_one_gene_group(NEURAL_TUBE_SET_A_GENES, data_path=nt_path)
 
     # with open(BRA_10_PATH, 'rb') as f:
     #     bra_10dict = pickle.load(f)
     # format_gastru_like_droso(bra_10dict)
-    # genes = ['Cdx2', 'Sox2']
-    #calculate_gastru_decoding_maps_one_gene_group(genes, data_path=CDX2_RES_PATH)
+    genes = ['Cdx2', 'Sox2']
+    calculate_gastru_decoding_maps_one_gene_group(genes, data_path=CDX2_RES_PATH)
     # print('wn')
     # plot_decoding_maps([genes], ['wn_gastru'], VMAXS_THREE_GENES, xlim=False, results_dir=GASTRU_RES_DIR)
     # print('sc')
