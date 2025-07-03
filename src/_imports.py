@@ -15,7 +15,7 @@ from abc import ABC, abstractmethod
 from scipy.stats import multivariate_normal
 from matplotlib.ticker import MaxNLocator
 
-
+from scipy.linalg import block_diag
 
 from scipy.ndimage import gaussian_filter1d
 from matplotlib.patches import Patch

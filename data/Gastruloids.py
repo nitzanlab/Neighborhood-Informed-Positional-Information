@@ -232,7 +232,51 @@ def create_cov_and_mean_joint_datasets_wn():
     sox2_wn_arr = sliding_window_view(sox2_arr, window_shape=3, axis=1)
     bra_wn_arr = sliding_window_view(bra2_arr, window_shape=3, axis=1)
     cdx2_wn_arr = sliding_window_view(cdx2_arr, window_shape=3, axis=1)
-    foxc1_arr = sliding_window_view(foxc1_arr, window_shape=3, axis=1)
+    foxc1_wn_arr = sliding_window_view(foxc1_arr, window_shape=3, axis=1)
+    sox2_wn_mean = np.mean(sox2_wn_arr,axis=0)
+    bra_wn_mean = np.mean(bra_wn_arr, axis=0)
+    cdx2_wn_mean = np.mean(cdx2_wn_arr, axis=0)
+    foxc1_wn_mean = np.mean(foxc1_wn_arr, axis=0)
+
+    #need to calculate the covariance with neighbors for every pair of genes
+    #start by getting the expression of the pairs as arrays
+    bra2_sox2_wn_exp = np.dstack((sliding_window_view(np.stack(bra2_sox2['Sox2'].to_list()),window_shape=3, axis=1),bra_wn_arr))
+    cdx2_sox2_wn_exp = np.dstack((sliding_window_view(np.stack(cdx2_sox2['Sox2'].tolist()), window_shape=3, axis=1), cdx2_wn_arr))
+    foxc1_sox2_wn_exp = np.dstack(
+        (sliding_window_view(np.stack(foxc1_sox2['Sox2'].tolist()), window_shape=3, axis=1), foxc1_wn_arr))
+
+    bra2_sox2_wn_cov = get_cov(bra2_sox2_wn_exp)
+    cdx2_sox2_wn_cov = get_cov(cdx2_sox2_wn_exp)
+    foxc1_sox2_wn_cov = get_cov(foxc1_sox2_wn_exp)
+
+
+    wn_mean = np.vstack((sox2_wn_mean,bra_wn_mean,cdx2_wn_mean, foxc1_wn_mean))
+    #diagonal covs
+    sox2_wn_cov = get_cov(sox2_wn_arr)
+    bra_wn_cov = get_cov(bra_wn_arr)
+    cdx2_wn_cov = get_cov(cdx2_wn_arr)
+    foxc1_wn_cov = get_cov(foxc1_wn_arr)
+
+    batch_size = sox2_wn_cov.shape[0]  # 190
+    block_size = sox2_wn_cov.shape[1]  # 3
+    num_blocks = 4
+    final_size = block_size * num_blocks
+    full_wn_covs = np.zeros((batch_size, final_size, final_size))
+    #the diagonal
+    for i in range(batch_size):
+        for j, A in enumerate([sox2_wn_cov, bra_wn_cov, cdx2_wn_cov, foxc1_wn_cov]):
+            start = j * block_size
+            end = (j + 1) * block_size
+            full_wn_covs[i, start:end, start:end] = A[i]
+    # for k in range(batch_size):
+    #     for m, B in enumerate([])
+
+
+
+    full_wn_covs = block_diag(sox2_wn_cov, bra_wn_cov, cdx2_wn_cov, foxc1_wn_cov)
+    print(full_wn_covs.shape)
+
+
 
 
 def create_covariance_sc_joint_datasets():
@@ -273,9 +317,7 @@ def create_covariance_sc_joint_datasets():
         full_covs[pos,3,0] = foxc1_sox2_cov[pos,0,1]
         full_covs[pos, 3, 3] = foxc1_var[pos]
     means_sc = np.vstack((np.mean(sox2_arr, axis=0), np.mean(bra2_arr, axis=0), np.mean(cdx2_arr, axis=0),np.mean(foxc1_arr, axis=0))).T
-    means_wn = np.concatenate(
-        (means_sc[:-2, :],means_sc[1:-1, :],means_sc[2:, :]), axis=1)
-    return full_covs[42:,:,:], means_sc[42:,:], means_wn[42:,:]
+    return full_covs[42:,:,:], means_sc[42:,:]
 
 def calculate_position_error_full_exp_profiles_sc(full_covs, means_sc):
     num_pos = means_sc.shape[0]
