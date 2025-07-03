@@ -214,7 +214,26 @@ def plot_gastruloids_data(data_dict, dict_name):
     plt.show()
 
 def create_cov_and_mean_joint_datasets_wn():
-    pass
+    cdx2_sox2 = format_gastru_like_droso(load_gastruloid_data(CDX2_RES_PATH))
+    bra2_sox2 = format_gastru_like_droso(load_gastruloid_data(BRA_RES_PATH))
+    foxc1_sox2 = format_gastru_like_droso(load_gastruloid_data(FOXC1_RES_PATH))
+
+    cdx2_arr = cdx2_sox2['Cdx2'].to_list()
+    cdx2_arr = np.stack(cdx2_arr)  # list of arrays
+
+    bra2_arr = bra2_sox2['Bra'].to_list()
+    bra2_arr = np.stack(bra2_arr)
+
+    foxc1_arr = foxc1_sox2['Foxc1'].to_list()
+    foxc1_arr = np.stack(foxc1_arr)
+
+    sox2_arr = np.vstack([np.stack(cdx2_sox2['Sox2'].to_list()), np.stack(bra2_sox2['Sox2'].to_list()),
+                          np.stack(foxc1_sox2['Sox2'].to_list())])
+    sox2_wn_arr = sliding_window_view(sox2_arr, window_shape=3, axis=1)
+    bra_wn_arr = sliding_window_view(bra2_arr, window_shape=3, axis=1)
+    cdx2_wn_arr = sliding_window_view(cdx2_arr, window_shape=3, axis=1)
+    foxc1_arr = sliding_window_view(foxc1_arr, window_shape=3, axis=1)
+
 
 def create_covariance_sc_joint_datasets():
     cdx2_sox2 = format_gastru_like_droso(load_gastruloid_data(CDX2_RES_PATH))
@@ -254,8 +273,9 @@ def create_covariance_sc_joint_datasets():
         full_covs[pos,3,0] = foxc1_sox2_cov[pos,0,1]
         full_covs[pos, 3, 3] = foxc1_var[pos]
     means_sc = np.vstack((np.mean(sox2_arr, axis=0), np.mean(bra2_arr, axis=0), np.mean(cdx2_arr, axis=0),np.mean(foxc1_arr, axis=0))).T
-
-    return full_covs[42:,:,:], means_sc[42:,:]
+    means_wn = np.concatenate(
+        (means_sc[:-2, :],means_sc[1:-1, :],means_sc[2:, :]), axis=1)
+    return full_covs[42:,:,:], means_sc[42:,:], means_wn[42:,:]
 
 def calculate_position_error_full_exp_profiles_sc(full_covs, means_sc):
     num_pos = means_sc.shape[0]
