@@ -248,7 +248,18 @@ def create_cov_and_mean_joint_datasets_wn():
     bra2_sox2_wn_cov = get_cov(bra2_sox2_wn_exp)
     cdx2_sox2_wn_cov = get_cov(cdx2_sox2_wn_exp)
     foxc1_sox2_wn_cov = get_cov(foxc1_sox2_wn_exp)
+    block_size =
+    for k, B in enumerate([bra2_sox2_wn_cov, cdx2_sox2_wn_cov, foxc1_sox2_wn_cov], start=1):
+        row_start = k * block_size
+        row_end = (k + 1) * block_size
+        col_start = 0 * block_size
+        col_end = 1 * block_size
 
+        # Lower block: [k,0]
+        result[i, row_start:row_end, col_start:col_end] = B[i]
+
+        # Symmetric upper block: [0,k] is B.T
+        result[i, col_start:col_end, row_start:row_end] = B[i].T
 
     wn_mean = np.vstack((sox2_wn_mean,bra_wn_mean,cdx2_wn_mean, foxc1_wn_mean))
     #diagonal covs
