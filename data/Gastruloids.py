@@ -169,6 +169,12 @@ class Gastruloids(Data):
         plt.ylim(0, 100)
         plt.show()
 
+    # def calculate_positional_error_per_decoding_map_GT_positions(self, decoding_genes):
+    #     decoding_genes_idx = self.get_decode_genes_idx(decoding_genes)
+    #     self.learn_mean_sc(decoding_genes_idx)
+    #     self.learn_covariance_sc(decoding_genes_idx)
+    #     self.learn_mean_wn()
+    #     self.learn_covariance_wn()
 def get_cov(training_data):
     num_positions = training_data.shape[1]
     num_features = training_data.shape[2]
@@ -207,6 +213,9 @@ def plot_gastruloids_data(data_dict, dict_name):
     plt.tight_layout()
     plt.show()
 
+def create_cov_and_mean_joint_datasets_wn():
+    pass
+
 def create_covariance_sc_joint_datasets():
     cdx2_sox2 = format_gastru_like_droso(load_gastruloid_data(CDX2_RES_PATH))
     bra2_sox2 = format_gastru_like_droso(load_gastruloid_data(BRA_RES_PATH))
@@ -228,9 +237,35 @@ def create_covariance_sc_joint_datasets():
     cdx2_var = np.var(cdx2_arr, axis=0)
     foxc1_var = np.var(foxc1_arr, axis=0)
 
-    bra2_sox2_cov = reshape_gene_data_to_arr(bra2_sox2, genes)
+    bra2_sox2_cov = get_cov(reshape_gene_data_to_arr(bra2_sox2,  ['Bra', 'Sox2']))
+    cdx2_sox2_cov = get_cov(reshape_gene_data_to_arr(cdx2_sox2,  ['Cdx2', 'Sox2']))
+    foxc1_sox2_cov = get_cov(reshape_gene_data_to_arr(foxc1_sox2, ['Foxc1', 'Sox2']))
 
-    print('')
+    full_covs = np.zeros((bra2_arr.shape[1],4,4)) #will be sox2,bra,cdx2,foxc1 order
+    for pos in np.arange(full_covs.shape[0]):
+        full_covs[pos,0,0] = sox2_var[pos] #sox2
+        full_covs[pos,0, 1] = bra2_sox2_cov[pos,0,1] #cov sox2 bra
+        full_covs[pos,0, 2] = cdx2_sox2_cov[pos,0,1]
+        full_covs[pos,0, 3] = foxc1_sox2_cov[pos,0,1]
+        full_covs[pos, 1, 0] = bra2_sox2_cov[pos,0,1]
+        full_covs[pos,1,1] = bra2_var[pos] #0 cov bra2 , cdx2, and bra2 foxc1 , so 1,2 = 0 , 1,3 = 0
+        full_covs[pos, 2,0] = cdx2_sox2_cov[pos,0,1]
+        full_covs[pos,2, 2 ] = cdx2_var[pos]
+        full_covs[pos,3,0] = foxc1_sox2_cov[pos,0,1]
+        full_covs[pos, 3, 3] = foxc1_var[pos]
+    means_sc = np.vstack((np.mean(sox2_arr, axis=0), np.mean(bra2_arr, axis=0), np.mean(cdx2_arr, axis=0),np.mean(foxc1_arr, axis=0))).T
+
+    return full_covs[42:,:,:], means_sc[42:,:]
+
+def calculate_position_error_full_exp_profiles_sc(full_covs, means_sc):
+    num_pos = means_sc.shape[0]
+    mean_exp_slopes = np.diff(means_sc, axis=0)
+    mean_exp_slopes = np.vstack([mean_exp_slopes, mean_exp_slopes[-1]])
+    position_error = np.zeros(num_pos)
+    for pos in range(num_pos):
+        position_error[pos] = 1 / (mean_exp_slopes[pos, :] @ np.linalg.inv(
+            full_covs[pos, :, :]) @ mean_exp_slopes[pos, :])
+    return position_error
 
 
 
