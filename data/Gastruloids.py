@@ -206,3 +206,34 @@ def plot_gastruloids_data(data_dict, dict_name):
     plt.ylim(0,4000)
     plt.tight_layout()
     plt.show()
+
+def create_covariance_sc_joint_datasets():
+    cdx2_sox2 = format_gastru_like_droso(load_gastruloid_data(CDX2_RES_PATH))
+    bra2_sox2 = format_gastru_like_droso(load_gastruloid_data(BRA_RES_PATH))
+    foxc1_sox2 = format_gastru_like_droso(load_gastruloid_data(FOXC1_RES_PATH))
+
+    cdx2_arr = cdx2_sox2['Cdx2'].to_list()
+    cdx2_arr = np.stack(cdx2_arr)  # list of arrays
+
+    bra2_arr = bra2_sox2['Bra'].to_list()
+    bra2_arr = np.stack(bra2_arr)
+
+    foxc1_arr = foxc1_sox2['Foxc1'].to_list()
+    foxc1_arr = np.stack(foxc1_arr)
+
+    sox2_arr = np.vstack([np.stack(cdx2_sox2['Sox2'].to_list()), np.stack(bra2_sox2['Sox2'].to_list()), np.stack(foxc1_sox2['Sox2'].to_list())])
+
+    sox2_var = np.var(sox2_arr, axis=0)
+    bra2_var = np.var(bra2_arr, axis=0)
+    cdx2_var = np.var(cdx2_arr, axis=0)
+    foxc1_var = np.var(foxc1_arr, axis=0)
+
+    bra2_sox2_cov = reshape_gene_data_to_arr(bra2_sox2, genes)
+
+    print('')
+
+
+
+
+def create_covariance_wn_joint_datasets():
+    pass

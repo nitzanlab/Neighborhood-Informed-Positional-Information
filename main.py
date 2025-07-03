@@ -28,6 +28,7 @@ def reproduce_all_results():
 
 
 if __name__ == '__main__':
+    create_covariance_sc_joint_datasets()
     # with open(os.path.join(NEURAL_TUBE_WT_PATH,'expressions_h=5.pkl'), 'rb') as f:
     #     nt_wt_5 = pickle.load(f)
     #plot_summarized_neural_tube_over_axis_over_timepoints(NEURAL_TUBE_SET_A_GENES)
