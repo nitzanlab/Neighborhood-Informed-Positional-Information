@@ -217,7 +217,7 @@ def create_cov_and_mean_joint_datasets_wn():
     cdx2_sox2 = format_gastru_like_droso(load_gastruloid_data(CDX2_RES_PATH))
     bra2_sox2 = format_gastru_like_droso(load_gastruloid_data(BRA_RES_PATH))
     foxc1_sox2 = format_gastru_like_droso(load_gastruloid_data(FOXC1_RES_PATH))
-
+    #TODO normalize
     cdx2_arr = cdx2_sox2['Cdx2'].to_list()
     cdx2_arr = np.stack(cdx2_arr)  # list of arrays
 
@@ -245,23 +245,12 @@ def create_cov_and_mean_joint_datasets_wn():
     foxc1_sox2_wn_exp = np.dstack(
         (sliding_window_view(np.stack(foxc1_sox2['Sox2'].tolist()), window_shape=3, axis=1), foxc1_wn_arr))
 
-    bra2_sox2_wn_cov = get_cov(bra2_sox2_wn_exp)
-    cdx2_sox2_wn_cov = get_cov(cdx2_sox2_wn_exp)
-    foxc1_sox2_wn_cov = get_cov(foxc1_sox2_wn_exp)
-    block_size =
-    for k, B in enumerate([bra2_sox2_wn_cov, cdx2_sox2_wn_cov, foxc1_sox2_wn_cov], start=1):
-        row_start = k * block_size
-        row_end = (k + 1) * block_size
-        col_start = 0 * block_size
-        col_end = 1 * block_size
+    bra2_sox2_wn_cov = get_cov(bra2_sox2_wn_exp)[:, 3:, :3]
+    cdx2_sox2_wn_cov = get_cov(cdx2_sox2_wn_exp)[:, 3:, :3]
+    foxc1_sox2_wn_cov = get_cov(foxc1_sox2_wn_exp)[:,3:, :3]
+    block_size = 3
 
-        # Lower block: [k,0]
-        result[i, row_start:row_end, col_start:col_end] = B[i]
-
-        # Symmetric upper block: [0,k] is B.T
-        result[i, col_start:col_end, row_start:row_end] = B[i].T
-
-    wn_mean = np.vstack((sox2_wn_mean,bra_wn_mean,cdx2_wn_mean, foxc1_wn_mean))
+    wn_mean = np.hstack((sox2_wn_mean,bra_wn_mean,cdx2_wn_mean, foxc1_wn_mean))
     #diagonal covs
     sox2_wn_cov = get_cov(sox2_wn_arr)
     bra_wn_cov = get_cov(bra_wn_arr)
@@ -279,13 +268,23 @@ def create_cov_and_mean_joint_datasets_wn():
             start = j * block_size
             end = (j + 1) * block_size
             full_wn_covs[i, start:end, start:end] = A[i]
+
+    for j in range(batch_size):
+        for k, B in enumerate([bra2_sox2_wn_cov, cdx2_sox2_wn_cov, foxc1_sox2_wn_cov], start=1):
+            row_start = k * block_size
+            row_end = (k + 1) * block_size
+            col_start = 0 * block_size
+            col_end = 1 * block_size
+
+            # Lower block: [k,0]
+            full_wn_covs[j, row_start:row_end, col_start:col_end] = B[j]
+
+            # Symmetric upper block: [0,k] is B.T
+            full_wn_covs[j, col_start:col_end, row_start:row_end] = B[j].T
     # for k in range(batch_size):
     #     for m, B in enumerate([])
-
-
-
-    full_wn_covs = block_diag(sox2_wn_cov, bra_wn_cov, cdx2_wn_cov, foxc1_wn_cov)
     print(full_wn_covs.shape)
+    return full_wn_covs, wn_mean
 
 
 
@@ -343,5 +342,16 @@ def calculate_position_error_full_exp_profiles_sc(full_covs, means_sc):
 
 
 
-def create_covariance_wn_joint_datasets():
-    pass
+def compare_position_error_all_datasets():
+    covs_all_gastru_wn, mean_all_gastru_wn = create_cov_and_mean_joint_datasets_wn()
+    covs_gastru_sc, means_gastru_sc = create_covariance_sc_joint_datasets()
+    wn_pos_error = calculate_position_error_full_exp_profiles_sc(covs_all_gastru_wn[42:,:,:], mean_all_gastru_wn[42:,:])
+    sc_pos_error = calculate_position_error_full_exp_profiles_sc(covs_gastru_sc, means_gastru_sc)
+    plt.plot(np.linspace(0, 1, len(wn_pos_error)), sc_pos_error[1:-1], label='sc')
+    plt.plot(np.linspace(0, 1, len(wn_pos_error)), wn_pos_error, label='wn')
+    plt.legend()
+    plt.title(f'position information ground truth positions Gastruloids')
+    plt.ylim(0, 100)
+    plt.show()
+
+    print('')

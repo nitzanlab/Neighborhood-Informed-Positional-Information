@@ -28,7 +28,8 @@ def reproduce_all_results():
 
 
 if __name__ == '__main__':
-    create_cov_and_mean_joint_datasets_wn()
+    compare_position_error_all_datasets()
+    covs_all_gastru_wn, mean_all_gastru_wn = create_cov_and_mean_joint_datasets_wn()
     covs_gastru_sc, means_gastru_sc = create_covariance_sc_joint_datasets()
 
     # with open(os.path.join(NEURAL_TUBE_WT_PATH,'expressions_h=5.pkl'), 'rb') as f:
