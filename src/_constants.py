@@ -106,6 +106,13 @@ BRA_RES_PATH = r"C:\Users\micha\thesis\code\data\position_decoding\human_gastrul
 CDX2_RES_PATH =r"C:\Users\micha\thesis\code\data\position_decoding\human_gastruloids_morris_reformatted\results_CDx2.pkl"
 FOXC1_RES_PATH = r"C:\Users\micha\thesis\code\data\position_decoding\human_gastruloids_morris_reformatted\results_Foxc1.pkl"
 
+gene_data_path_dict =  {
+    'Bra': BRA_RES_PATH,
+    'Cdx2': CDX2_RES_PATH,
+    'Foxc1': FOXC1_RES_PATH
+}
+
+
 ##Neural Tube
 NEURAL_TUBE_WT_PATH = r"C:\Users\micha\thesis\code\data\position_decoding\neural_tube\neural_tube"
 NEURAL_TUBE_HYPO_PATH = r"C:\Users\micha\thesis\code\data\position_decoding\neural_tube\neural_tube_hypo"

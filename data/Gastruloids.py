@@ -1,3 +1,6 @@
+import matplotlib.pyplot as plt
+import numpy as np
+
 from src._imports import *
 
 
@@ -210,8 +213,53 @@ def plot_gastruloids_data(data_dict, dict_name):
     plt.title(f'Mean ± Std Dev over Positions for Each Key- {dict_name}')
     plt.legend()
     plt.ylim(0,4000)
+    plt.xlim(0.4,0.8)
     plt.tight_layout()
     plt.show()
+
+
+
+def create_cov_and_mean_one_gene_sc(gene_name):
+
+    pass
+
+def normalize_gastruloid_gene_expression(training_data, gene_name):
+    """
+    This function normalizes the given data as done in Petkova et al 2019.
+    """
+    min_mean_exp, max_mean_exp = min_and_max_mean_gene_expression(training_data, gene_name)
+    data_decode = normalize_gene_exp(training_data, np.array(min_mean_exp), np.array(max_mean_exp), gene_name)
+    return data_decode
+
+def create_cov_and_mean_one_gene_wn(gene_name):
+    data_path = gene_data_path_dict[gene_name]
+    gastru_data = format_gastru_like_droso(load_gastruloid_data(data_path))
+    normalized_gastru_data = normalize_gastruloid_gene_expression(gastru_data, [gene_name])
+    print(normalized_gastru_data.shape)
+    gastru_arr = reshape_gene_data_to_arr(gastru_data,[gene_name])
+    print(gastru_arr.shape)
+    mean_sc = np.mean(gastru_arr, axis=0).flatten()
+    mean_wn = np.vstack(
+            (mean_sc[:-2], mean_sc[1:-1],mean_sc[2:])).T
+    cov_sc = np.var(gastru_arr, axis = 0).flatten()
+    neigh_arr = np.concatenate((gastru_arr[:,:-2,:],gastru_arr[:,1:-1,:], gastru_arr[:,2:,:]),axis=2)
+    cov_wn = get_cov(neigh_arr)
+    mean_sc = mean_sc[1:-1]
+    cov_sc = cov_sc[1:-1]
+    sc_pos_err = calculate_position_error_one_gene(cov_sc, mean_sc)
+    wn_pos_err = calculate_position_error_full_exp_profiles_sc(cov_wn, mean_wn)
+
+    plt.scatter(np.linspace(0,1,len(wn_pos_err)), sc_pos_err/len(sc_pos_err), color='blue',label='sc')
+    plt.scatter(np.linspace(0,1,len(wn_pos_err)), wn_pos_err/len(sc_pos_err), color='orange',label='wn')
+    plt.title(f'positional error gene:{gene_name} in gastruloids')
+    plt.ylim(0, 1)
+    plt.xlim(0.4,0.8)
+    plt.legend()
+    plt.show()
+
+
+
+
 
 def create_cov_and_mean_joint_datasets_wn():
     cdx2_sox2 = format_gastru_like_droso(load_gastruloid_data(CDX2_RES_PATH))
@@ -331,14 +379,20 @@ def create_covariance_sc_joint_datasets():
 
 def calculate_position_error_full_exp_profiles_sc(full_covs, means_sc):
     num_pos = means_sc.shape[0]
-    mean_exp_slopes = np.diff(means_sc, axis=0)
+    mean_exp_slopes = np.abs(np.diff(means_sc, axis=0))
     mean_exp_slopes = np.vstack([mean_exp_slopes, mean_exp_slopes[-1]])
     position_error = np.zeros(num_pos)
     for pos in range(num_pos):
         position_error[pos] = 1 / (mean_exp_slopes[pos, :] @ np.linalg.inv(
             full_covs[pos, :, :]) @ mean_exp_slopes[pos, :])
-    return position_error
+    return np.sqrt(position_error)
 
+def calculate_position_error_one_gene(full_covs, means):
+    num_pos = means.shape[0]
+    mean_exp_slopes = np.diff(means, axis=0)
+    mean_exp_slopes = np.append(mean_exp_slopes, mean_exp_slopes[-1])
+    position_error = (1/(np.abs(mean_exp_slopes)))*np.sqrt(full_covs)
+    return position_error
 
 
 
