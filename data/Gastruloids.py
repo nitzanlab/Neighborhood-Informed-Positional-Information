@@ -232,8 +232,12 @@ def normalize_gastruloid_gene_expression(training_data, gene_name):
     return data_decode
 
 def create_cov_and_mean_one_gene_wn(gene_name):
-    data_path = gene_data_path_dict[gene_name]
-    gastru_data = format_gastru_like_droso(load_gastruloid_data(data_path))
+    if gene_name != 'Sox2':
+        data_path = gene_data_path_dict[gene_name]
+        gastru_data = format_gastru_like_droso(load_gastruloid_data(data_path))
+    else:
+        data_path_bra = gene_data_path_dict['Bra']
+        gastru_data_bra =format_gastru_like_droso(load_gastruloid_data(data_path_bra))
     normalized_gastru_data = normalize_gastruloid_gene_expression(gastru_data, [gene_name])
     print(normalized_gastru_data.shape)
     gastru_arr = reshape_gene_data_to_arr(gastru_data,[gene_name])
@@ -253,7 +257,7 @@ def create_cov_and_mean_one_gene_wn(gene_name):
     plt.scatter(np.linspace(0,1,len(wn_pos_err)), wn_pos_err/len(sc_pos_err), color='orange',label='wn')
     plt.title(f'positional error gene:{gene_name} in gastruloids')
     plt.ylim(0, 1)
-    plt.xlim(0.4,0.8)
+    plt.xlim(0.2,1 )
     plt.legend()
     plt.show()
 
