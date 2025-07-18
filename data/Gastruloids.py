@@ -230,6 +230,14 @@ def get_sox2_wn_exp_in_one_dataset(second_gene_name:str):
     sox2_wn_exp = get_wn_exp_from_sc_exp(exp_arr)
     return sox2_wn_exp
 
+def get_sox2_sc_exp_in_one_dataset(second_gene_name:str):
+    with open(gene_data_path_dict[second_gene_name], 'rb') as f:
+        exp_dict = pickle.load(f)
+    exp_arr = np.array(exp_dict['Sox2'])
+    exp_arr[np.isnan(exp_arr)] = 0
+    return exp_arr
+
+
 def get_joint_genes_wn_exp(second_gene_name:str):
     """
     The joint expression will be of sox2 and additional gene.
@@ -242,6 +250,16 @@ def get_joint_genes_wn_exp(second_gene_name:str):
     joint_wn_exp = np.dstack(
         (get_sox2_wn_exp_in_one_dataset(second_gene_name), second_gene_wn_arr))
     return joint_wn_exp
+
+def get_joint_genes_sc_exp(second_gene_name:str):
+    """
+    The joint expression SC of sox2 and an additional gene
+    :param second_gene_name:
+    :return:
+    """
+    second_gene_sc_arr = get_one_gene_exp_over_AP_axis(second_gene_name)
+    joint_sc_exp = np.dstack((get_sox2_sc_exp_in_one_dataset(second_gene_name), second_gene_sc_arr))
+    return joint_sc_exp
 
 def plot_all_gasturloid_genes_exp_together():
     cdx2_exp = get_one_gene_exp_over_AP_axis('Cdx2')
@@ -356,19 +374,21 @@ def get_all_genes_full_wn_mean(sox2_wn_arr, bra_wn_arr, cdx2_wn_arr, foxc1_wn_ar
     return wn_mean
 
 def get_pos_error_all_two_genes_combos():
-    all_two_gene_pos_errors = []
-    gastru_genes = np.array(gene_data_path_dict.keys())
+    all_two_gene_wn_err = []
+    all_two_gene_sc_err = []
+    gastru_genes = ['Sox2','Bra','Cdx2','Foxc1']
     for i in range(len(gastru_genes)):
         for j in range(i+1, len(gastru_genes)):
             print(f'pair: {gastru_genes[i]} {gastru_genes[j]}')
             gene1 = gastru_genes[i]
             gene2 = gastru_genes[j]
-            if gene1 == 'Sox2' or gene2=='Sox2':
-                pos_error = get_pos_error_two_dependent_genes(gene1, gene2)
+            if gene1 == 'Sox2':
+                wn_pos_err, sc_pos_err = get_pos_error_two_dependent_genes(gene1, gene2)
             else:
-                get_error = get_pos_error_two_independent_genes(gene1, gene2)
-            all_two_gene_pos_errors.append(all_two_gene_pos_errors)
-    return all_two_gene_pos_errors
+                wn_pos_err, sc_pos_err = get_pos_error_two_independent_genes(gene1, gene2)
+            all_two_gene_wn_err.append(wn_pos_err)
+            all_two_gene_sc_err.append(sc_pos_err)
+    return all_two_gene_wn_err, all_two_gene_sc_err
 
 def get_pos_error_all_three_grene_combos():
     gene_set1 = ['Bra','Sox2','Foxc1']
@@ -377,13 +397,50 @@ def get_pos_error_all_three_grene_combos():
     gene_set4 = ['Foxc1','Cdx2','Sox2']
 
     pass
-def get_pos_error_two_genes(gene1:str, gene2:str):
-    pass
 
 def get_pos_error_two_independent_genes(gene1:str, gene2:str):
-    pass
+    #both are not sox2
+    gene1_exp = get_one_gene_exp_over_AP_axis(gene1)
+    gene2_exp = get_one_gene_exp_over_AP_axis(gene2)
+    gene1_wn_exp = get_wn_exp_from_sc_exp(gene1_exp)
+    gene2_wn_exp = get_wn_exp_from_sc_exp(gene2_exp)
+    cov_sc = np.zeros((len(gene1_exp), 2, 2))
+    cov_sc[:, 0, 0] = np.var(gene1_exp)
+    cov_sc[:, 1, 1] = np.var(gene2_exp)
+    mean_sc = np.hstack((np.mean(gene1_exp,axis=0), np.mean(gene2_exp,axis=0)))
+    mean_wn = np.hstack((np.mean(gene1_wn_exp, axis=0),np.mean(gene1_wn_exp,axis=0)))
+    cov_wn = np.zeros((len(gene1_exp)),6,6)
+    gene1_wn_cov = get_cov(gene1_wn_exp)
+    gene2_wn_cov = get_cov(gene2_wn_exp)
+    cov_wn[:, 0:3, 0:3] = gene1_wn_cov
+    cov_wn[:, 3:6, 3:6] = gene2_wn_cov
+    wn_pos_err = calculate_position_error_gt_pos(cov_wn, mean_wn)
+    sc_pos_err = calculate_position_error_gt_pos(cov_sc, mean_sc)
+    return wn_pos_err, sc_pos_err
+
+
 def get_pos_error_two_dependent_genes(gene1:str, gene2:str):
-    pass
+    # first gene is sox
+    exp_arr_sc = get_joint_genes_sc_exp(gene2)
+    exp_arr_wn = get_joint_genes_wn_exp(gene2)
+    mean_sc = np.mean(exp_arr_sc, axis=0)
+    mean_wn = np.mean(exp_arr_wn, axis=0)
+    cov_sc = get_cov(exp_arr_sc)
+    cov_wn = []
+    sc_pos_err = calculate_position_error_gt_pos(cov_sc, mean_sc)
+    wn_pos_err = calculate_position_error_gt_pos(cov_wn, mean_wn)
+    return wn_pos_err, sc_pos_err
+
+def get_all_subsets_pos_error():
+    ##one gene (4)
+    for gene in gene_data_path_dict.keys():
+        pass
+    ##two genes (6)
+
+    ###three genes (4)
+
+    ### four genes (1)
+    wn_pos_4, sc_pos_4 = pos_err_all_four_genes()
 
 def create_cov_and_mean_joint_datasets_wn():
     sox2_wn_arr = get_sox2_wn_exp()
@@ -536,9 +593,9 @@ def create_covariance_sc_joint_datasets():
     full_covs[np.isnan(full_covs)] = 0
     return full_covs, means_sc
 
-def calculate_position_error_gt_pos(full_covs, means_sc):
-    num_pos = means_sc.shape[0]
-    mean_exp_slopes = np.abs(np.diff(means_sc, axis=0))
+def calculate_position_error_gt_pos(full_covs, full_means):
+    num_pos = full_means.shape[0]
+    mean_exp_slopes = np.abs(np.diff(full_means, axis=0))
     mean_exp_slopes = np.vstack([mean_exp_slopes, mean_exp_slopes[-1]])
     position_error = np.zeros(num_pos)
     for pos in range(num_pos):
@@ -572,12 +629,15 @@ def plot_positional_information_gastruloids():
     plt.tight_layout()
     plt.show()
 
-
-def compare_position_error_all_datasets():
+def pos_err_all_four_genes():
     covs_all_gastru_wn, mean_all_gastru_wn = create_cov_and_mean_joint_datasets_wn()
     covs_gastru_sc, means_gastru_sc = create_covariance_sc_joint_datasets()
-    wn_pos_error = calculate_position_error_gt_pos(covs_all_gastru_wn[42:, :, :], mean_all_gastru_wn[42:, :])
+    wn_pos_error = calculate_position_error_gt_pos(covs_all_gastru_wn, mean_all_gastru_wn)
     sc_pos_error = calculate_position_error_gt_pos(covs_gastru_sc, means_gastru_sc)
+    return wn_pos_error, sc_pos_error
+
+def compare_position_error_all_datasets():
+    wn_pos_error, sc_por_error = pos_err_all_four_genes()
     plt.plot(np.linspace(0, 1, len(wn_pos_error)), sc_pos_error[1:-1], label='sc')
     plt.plot(np.linspace(0, 1, len(wn_pos_error)), wn_pos_error, label='wn')
     plt.legend()
