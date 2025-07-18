@@ -28,9 +28,11 @@ def reproduce_all_results():
 
 
 if __name__ == '__main__':
-    create_cov_and_mean_one_gene_wn('Bra')
-    create_cov_and_mean_one_gene_wn('Foxc1')
-    create_cov_and_mean_one_gene_wn('Cdx2')
+    set_style()
+    plot_all_gastruloid_plots()
+    #create_cov_and_mean_one_gene_wn('Bra')
+    #create_cov_and_mean_one_gene_wn('Foxc1')
+    #create_cov_and_mean_one_gene_wn('Cdx2')
     # compare_position_error_all_datasets()
     # covs_all_gastru_wn, mean_all_gastru_wn = create_cov_and_mean_joint_datasets_wn()
     # covs_gastru_sc, means_gastru_sc = create_covariance_sc_joint_datasets()
@@ -59,8 +61,8 @@ if __name__ == '__main__':
     #     cdx2_dict = pickle.load(f)
     # with open(FOXC1_RES_PATH, 'rb') as f:
     #     foxc1_dict = pickle.load(f)
-    #plot_gastruloids_data(bra_dict,'BRA')
-    #plot_gastruloids_data(bra_10dict, 'BRA_10')
+    # #plot_gastruloids_data(bra_dict,'BRA')
+    # plot_gastruloids_data(foxc1_dict, 'foxc1')
     #plot_gastruloids_data(foxc1_dict, 'FOXC1')
     #set_style()
     #reproduce_all_results()

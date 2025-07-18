@@ -193,13 +193,59 @@ def reshape_gene_data_to_arr(gene_exp_data, genes):
     reshaped_data = np.dstack(np.array(reshaped_gene_data))
     return reshaped_data
 
+def get_sox2_exp():
+    sox_all_exp = []
+    for gene_name in gene_data_path_dict.keys():
+        with open(gene_data_path_dict[gene_name], 'rb') as f:
+            exp_dict = pickle.load(f)
+        sox_exp = np.array(exp_dict['Sox2'])
+        sox_exp[np.isnan(sox_exp)] = 0
+        sox_all_exp.append(sox_exp)
+    return np.concatenate(sox_all_exp)
+
+def get_one_gene_exp_over_AP_axis(gene_name:str):
+    with open(gene_data_path_dict[gene_name], 'rb') as f:
+        exp_dict = pickle.load(f)
+    exp_arr = np.array(exp_dict[gene_name])
+    exp_arr[np.isnan(exp_arr)] = 0
+    return exp_arr
+
+def plot_all_gasturloid_genes_exp_together():
+    cdx2_exp = get_one_gene_exp_over_AP_axis('Cdx2')
+    bra_exp = get_one_gene_exp_over_AP_axis('Bra')
+    foxc1_exp = get_one_gene_exp_over_AP_axis('Foxc1')
+    sox2_exp = get_sox2_exp()
+    all_genes_exp_dict = {
+        'Cdx2': cdx2_exp,
+        'Bra' : bra_exp,
+        'Foxc1' : foxc1_exp,
+        'Sox2' : sox2_exp
+    }
+    for gene, expr in all_genes_exp_dict.items():
+        mean_expr = np.nanmean(expr, axis=0)  # In case of NaNs
+        std_expr = np.nanstd(expr, axis=0)
+        x = np.linspace(0,1, expr.shape[1])  # x-axis positions (e.g., 0 to M-1)
+
+        plt.plot(x, (mean_expr)/1000, label=gene,color=GASTRULOID_GENE_COLORS[gene], linewidth=2)
+        plt.fill_between(x, (mean_expr - std_expr)/1000, (mean_expr + std_expr)/1000, color=GASTRULOID_GENE_COLORS[gene], alpha=0.5)
+
+    plt.xlabel("x/L")
+    plt.ylabel("I (a.u)")
+    plt.title("Gastruloid Gene Expression")
+    plt.legend()
+    plt.xlim(0.1,0.9)
+    plt.tight_layout()
+    plt.show()
 
 
 def plot_gastruloids_data(data_dict, dict_name):
     plt.figure(figsize=(12, 6))
 
     for key in data_dict:
-        arr = np.array(data_dict[key])  # shape should be (49, 200)
+        arr = np.array(data_dict[key])
+
+        arr[np.isnan(arr)] = 0
+        # shape should be (49, 200)
         mean_vals = np.mean(arr, axis=0)  # mean across the 49 rows
         std_vals = np.std(arr, axis=0)  # std across the 49 rows
 
@@ -212,8 +258,8 @@ def plot_gastruloids_data(data_dict, dict_name):
     plt.ylabel('Mean ± Std over 49 samples')
     plt.title(f'Mean ± Std Dev over Positions for Each Key- {dict_name}')
     plt.legend()
-    plt.ylim(0,4000)
-    plt.xlim(0.4,0.8)
+    #plt.ylim(0,4000)
+    #plt.xlim(0.4,0.8)
     plt.tight_layout()
     plt.show()
 
@@ -252,12 +298,17 @@ def create_cov_and_mean_one_gene_wn(gene_name):
     cov_sc = cov_sc[1:-1]
     sc_pos_err = calculate_position_error_one_gene(cov_sc, mean_sc)
     wn_pos_err = calculate_position_error_full_exp_profiles_sc(cov_wn, mean_wn)
-
-    plt.scatter(np.linspace(0,1,len(wn_pos_err)), sc_pos_err/len(sc_pos_err), color='blue',label='sc')
-    plt.scatter(np.linspace(0,1,len(wn_pos_err)), wn_pos_err/len(sc_pos_err), color='orange',label='wn')
-    plt.title(f'positional error gene:{gene_name} in gastruloids')
+    window_size = 10
+    sc_pos_err_smoothened = uniform_filter1d(sc_pos_err[42:], window_size)
+    wn_pos_err_smoothened = uniform_filter1d(wn_pos_err[42:], window_size)
+    x_pos = np.linspace(0,1,len(sc_pos_err_smoothened))
+    plt.scatter(x_pos, sc_pos_err_smoothened/len(sc_pos_err_smoothened), color='blue',label='sc')
+    plt.scatter(x_pos,wn_pos_err_smoothened/len(wn_pos_err_smoothened), color='orange',label='wn')
+    #plt.scatter(np.linspace(0,1,len(wn_pos_err)), sc_pos_err/len(sc_pos_err), color='blue',label='sc')
+    #plt.scatter(np.linspace(0,1,len(wn_pos_err)), wn_pos_err/len(sc_pos_err), color='orange',label='wn')
+    plt.title(f'positional error gene:{gene_name} in gastruloids smoothened')
     plt.ylim(0, 1)
-    plt.xlim(0.2,1 )
+    plt.xlim(0, 1)
     plt.legend()
     plt.show()
 
@@ -266,6 +317,7 @@ def create_cov_and_mean_one_gene_wn(gene_name):
 
 
 def create_cov_and_mean_joint_datasets_wn():
+    #TODO use this function :get_one_gene_exp_over_AP_axis
     cdx2_sox2 = format_gastru_like_droso(load_gastruloid_data(CDX2_RES_PATH))
     bra2_sox2 = format_gastru_like_droso(load_gastruloid_data(BRA_RES_PATH))
     foxc1_sox2 = format_gastru_like_droso(load_gastruloid_data(FOXC1_RES_PATH))
@@ -398,6 +450,24 @@ def calculate_position_error_one_gene(full_covs, means):
     position_error = (1/(np.abs(mean_exp_slopes)))*np.sqrt(full_covs)
     return position_error
 
+def plot_positional_information_gastruloids():
+    covs_all_gastru_wn, mean_all_gastru_wn = create_cov_and_mean_joint_datasets_wn()
+    covs_gastru_sc, means_gastru_sc = create_covariance_sc_joint_datasets()
+    wn_pos_error = calculate_position_error_full_exp_profiles_sc(covs_all_gastru_wn[42:, :, :],
+                                                                 mean_all_gastru_wn[42:, :])
+    sc_pos_error = calculate_position_error_full_exp_profiles_sc(covs_gastru_sc, means_gastru_sc)
+    i_sc = np.log2(GASTRULOID_L/((np.sqrt(2*np.pi))*sc_pos_error))[1:-1]
+    i_wn = np.log2(GASTRULOID_L/((np.sqrt(2*np.pi))*wn_pos_error))
+    i_unique = np.log2(GASTRULOID_L/((np.sqrt(2*np.pi))))*np.ones_like(i_sc)
+    x_pos = np.linspace(0,1,len(i_sc))
+    plt.plot(x_pos, i_sc, color='blue', label=DECODER_NAMES['sc'])
+    plt.plot(x_pos, i_wn, color='orange', label=DECODER_NAMES['wn'])
+    plt.plot(x_pos, i_unique, color='black', label='Unique cell specification', linestyle='--')
+    plt.legend()
+    plt.xlabel('position (x/L)')
+    plt.ylabel('positional information in bits')
+    plt.tight_layout()
+    plt.show()
 
 
 def compare_position_error_all_datasets():

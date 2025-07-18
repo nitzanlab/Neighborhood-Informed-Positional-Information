@@ -112,6 +112,19 @@ gene_data_path_dict =  {
     'Foxc1': FOXC1_RES_PATH
 }
 
+GASTRULOID_GENE_COLORS = {
+    'Bra': 'orange',
+    'Cdx2': 'red',
+    'Foxc1': 'pink',
+    'Sox2': 'green'
+}
+
+GASTRULOID_NUM_BINS = 194
+GASTRULOID_L = 494
+GASTRULOID_L_STD = 52
+GASTRULOID_N = 36
+
+
 
 ##Neural Tube
 NEURAL_TUBE_WT_PATH = r"C:\Users\micha\thesis\code\data\position_decoding\neural_tube\neural_tube"

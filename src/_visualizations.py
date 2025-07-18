@@ -8,6 +8,7 @@ from src._constants import *
 from data._preprocessing import *
 from data.droso_data import *
 from data.WildTypeDrosophila import *
+from data.Gastruloids import *
 from src._utils import *
 #### panels b and c, gap gene and pair rule genes pairwise correlations:
 def gene_expression_pairwise_correlation_plots():
@@ -868,3 +869,9 @@ def plot_pr_exp(pr_arr):
         plt.tight_layout()
         plt.legend()
         plt.show()
+
+#################################Gastruloid plots###########################################
+def plot_all_gastruloid_plots():
+    print('')
+    #plot_all_gasturloid_genes_exp_together()
+    plot_positional_information_gastruloids()
