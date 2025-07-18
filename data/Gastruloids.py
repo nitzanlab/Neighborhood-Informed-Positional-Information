@@ -210,6 +210,39 @@ def get_one_gene_exp_over_AP_axis(gene_name:str):
     exp_arr[np.isnan(exp_arr)] = 0
     return exp_arr
 
+def get_wn_exp_from_sc_exp(sc_exp_arr):
+    wn_exp_arr = sliding_window_view(sc_exp_arr, window_shape=3, axis=1)
+    return wn_exp_arr
+def get_wn_exp(gene_name:str):
+    sc_exp_arr = get_one_gene_exp_over_AP_axis(gene_name)
+    wn_exp_arr = get_wn_exp_from_sc_exp(sc_exp_arr)
+    return wn_exp_arr
+def get_sox2_wn_exp():
+    sc_exp_arr = get_sox2_exp()
+    wn_exp_arr = get_wn_exp_from_sc_exp(sc_exp_arr)
+    return wn_exp_arr
+
+def get_sox2_wn_exp_in_one_dataset(second_gene_name:str):
+    with open(gene_data_path_dict[second_gene_name], 'rb') as f:
+        exp_dict = pickle.load(f)
+    exp_arr = np.array(exp_dict['Sox2'])
+    exp_arr[np.isnan(exp_arr)] = 0
+    sox2_wn_exp = get_wn_exp_from_sc_exp(exp_arr)
+    return sox2_wn_exp
+
+def get_joint_genes_wn_exp(second_gene_name:str):
+    """
+    The joint expression will be of sox2 and additional gene.
+    This expression will then be used to calculate the covariance in gene expression
+    across the ap axis of these two genes that were measured simulatenously in the embryo
+    :param second_gene_name:
+    :return:
+    """
+    second_gene_wn_arr = get_wn_exp(second_gene_name)
+    joint_wn_exp = np.dstack(
+        (get_sox2_wn_exp_in_one_dataset(second_gene_name), second_gene_wn_arr))
+    return joint_wn_exp
+
 def plot_all_gasturloid_genes_exp_together():
     cdx2_exp = get_one_gene_exp_over_AP_axis('Cdx2')
     bra_exp = get_one_gene_exp_over_AP_axis('Bra')
@@ -297,7 +330,7 @@ def create_cov_and_mean_one_gene_wn(gene_name):
     mean_sc = mean_sc[1:-1]
     cov_sc = cov_sc[1:-1]
     sc_pos_err = calculate_position_error_one_gene(cov_sc, mean_sc)
-    wn_pos_err = calculate_position_error_full_exp_profiles_sc(cov_wn, mean_wn)
+    wn_pos_err = calculate_position_error_gt_pos(cov_wn, mean_wn)
     window_size = 10
     sc_pos_err_smoothened = uniform_filter1d(sc_pos_err[42:], window_size)
     wn_pos_err_smoothened = uniform_filter1d(wn_pos_err[42:], window_size)
@@ -314,47 +347,63 @@ def create_cov_and_mean_one_gene_wn(gene_name):
 
 
 
-
-
-def create_cov_and_mean_joint_datasets_wn():
-    #TODO use this function :get_one_gene_exp_over_AP_axis
-    cdx2_sox2 = format_gastru_like_droso(load_gastruloid_data(CDX2_RES_PATH))
-    bra2_sox2 = format_gastru_like_droso(load_gastruloid_data(BRA_RES_PATH))
-    foxc1_sox2 = format_gastru_like_droso(load_gastruloid_data(FOXC1_RES_PATH))
-    #TODO normalize
-    cdx2_arr = cdx2_sox2['Cdx2'].to_list()
-    cdx2_arr = np.stack(cdx2_arr)  # list of arrays
-
-    bra2_arr = bra2_sox2['Bra'].to_list()
-    bra2_arr = np.stack(bra2_arr)
-
-    foxc1_arr = foxc1_sox2['Foxc1'].to_list()
-    foxc1_arr = np.stack(foxc1_arr)
-
-    sox2_arr = np.vstack([np.stack(cdx2_sox2['Sox2'].to_list()), np.stack(bra2_sox2['Sox2'].to_list()),
-                          np.stack(foxc1_sox2['Sox2'].to_list())])
-    sox2_wn_arr = sliding_window_view(sox2_arr, window_shape=3, axis=1)
-    bra_wn_arr = sliding_window_view(bra2_arr, window_shape=3, axis=1)
-    cdx2_wn_arr = sliding_window_view(cdx2_arr, window_shape=3, axis=1)
-    foxc1_wn_arr = sliding_window_view(foxc1_arr, window_shape=3, axis=1)
-    sox2_wn_mean = np.mean(sox2_wn_arr,axis=0)
+def get_all_genes_full_wn_mean(sox2_wn_arr, bra_wn_arr, cdx2_wn_arr, foxc1_wn_arr):
+    sox2_wn_mean = np.mean(sox2_wn_arr, axis=0)
     bra_wn_mean = np.mean(bra_wn_arr, axis=0)
     cdx2_wn_mean = np.mean(cdx2_wn_arr, axis=0)
     foxc1_wn_mean = np.mean(foxc1_wn_arr, axis=0)
+    wn_mean = np.hstack((sox2_wn_mean, bra_wn_mean, cdx2_wn_mean, foxc1_wn_mean))
+    return wn_mean
 
+def get_pos_error_all_two_genes_combos():
+    all_two_gene_pos_errors = []
+    gastru_genes = np.array(gene_data_path_dict.keys())
+    for i in range(len(gastru_genes)):
+        for j in range(i+1, len(gastru_genes)):
+            print(f'pair: {gastru_genes[i]} {gastru_genes[j]}')
+            gene1 = gastru_genes[i]
+            gene2 = gastru_genes[j]
+            if gene1 == 'Sox2' or gene2=='Sox2':
+                pos_error = get_pos_error_two_dependent_genes(gene1, gene2)
+            else:
+                get_error = get_pos_error_two_independent_genes(gene1, gene2)
+            all_two_gene_pos_errors.append(all_two_gene_pos_errors)
+    return all_two_gene_pos_errors
+
+def get_pos_error_all_three_grene_combos():
+    gene_set1 = ['Bra','Sox2','Foxc1']
+    gene_set2 = ['Bra','Sox2', 'Cdx2']
+    gene_set3 = ['Bra', 'Foxc1','Cdx2']
+    gene_set4 = ['Foxc1','Cdx2','Sox2']
+
+    pass
+def get_pos_error_two_genes(gene1:str, gene2:str):
+    pass
+
+def get_pos_error_two_independent_genes(gene1:str, gene2:str):
+    pass
+def get_pos_error_two_dependent_genes(gene1:str, gene2:str):
+    pass
+
+def create_cov_and_mean_joint_datasets_wn():
+    sox2_wn_arr = get_sox2_wn_exp()
+    bra_wn_arr = get_wn_exp('Bra')
+    cdx2_wn_arr = get_wn_exp('Cdx2')
+    foxc1_wn_arr = get_wn_exp('Foxc1')
+
+    #TODO normalize
     #need to calculate the covariance with neighbors for every pair of genes
     #start by getting the expression of the pairs as arrays
-    bra2_sox2_wn_exp = np.dstack((sliding_window_view(np.stack(bra2_sox2['Sox2'].to_list()),window_shape=3, axis=1),bra_wn_arr))
-    cdx2_sox2_wn_exp = np.dstack((sliding_window_view(np.stack(cdx2_sox2['Sox2'].tolist()), window_shape=3, axis=1), cdx2_wn_arr))
-    foxc1_sox2_wn_exp = np.dstack(
-        (sliding_window_view(np.stack(foxc1_sox2['Sox2'].tolist()), window_shape=3, axis=1), foxc1_wn_arr))
+    bra2_sox2_wn_exp = get_joint_genes_wn_exp('Bra')
+    cdx2_sox2_wn_exp = get_joint_genes_wn_exp('Cdx2')
+    foxc1_sox2_wn_exp = get_joint_genes_wn_exp('Foxc1')
 
+    #TODO explain the slicing here
     bra2_sox2_wn_cov = get_cov(bra2_sox2_wn_exp)[:, 3:, :3]
     cdx2_sox2_wn_cov = get_cov(cdx2_sox2_wn_exp)[:, 3:, :3]
     foxc1_sox2_wn_cov = get_cov(foxc1_sox2_wn_exp)[:,3:, :3]
-    block_size = 3
 
-    wn_mean = np.hstack((sox2_wn_mean,bra_wn_mean,cdx2_wn_mean, foxc1_wn_mean))
+    wn_mean = get_all_genes_full_wn_mean(sox2_wn_arr, bra_wn_arr, cdx2_wn_arr, foxc1_wn_arr)
     #diagonal covs
     sox2_wn_cov = get_cov(sox2_wn_arr)
     bra_wn_cov = get_cov(bra_wn_arr)
@@ -366,7 +415,7 @@ def create_cov_and_mean_joint_datasets_wn():
     num_blocks = 4
     final_size = block_size * num_blocks
     full_wn_covs = np.zeros((batch_size, final_size, final_size))
-    #the diagonal
+    #the diagonal, the covariance in expression between neighboring positions, same gene
     for i in range(batch_size):
         for j, A in enumerate([sox2_wn_cov, bra_wn_cov, cdx2_wn_cov, foxc1_wn_cov]):
             start = j * block_size
@@ -385,10 +434,68 @@ def create_cov_and_mean_joint_datasets_wn():
 
             # Symmetric upper block: [0,k] is B.T
             full_wn_covs[j, col_start:col_end, row_start:row_end] = B[j].T
-    # for k in range(batch_size):
-    #     for m, B in enumerate([])
     print(full_wn_covs.shape)
+    full_wn_covs[np.isnan(full_wn_covs)] = 0
     return full_wn_covs, wn_mean
+# def create_cov_and_mean_joint_datasets_wn():
+#     sox2_wn_arr = get_sox2_wn_exp()
+#     bra_wn_arr = get_wn_exp('Bra')
+#     cdx2_wn_arr = get_wn_exp('Cdx2')
+#     foxc1_wn_arr = get_wn_exp('Foxc1')
+#
+#     #for covariance between sox2 and each other gene
+#     cdx2_sox2 = format_gastru_like_droso(load_gastruloid_data(CDX2_RES_PATH))
+#     bra2_sox2 = format_gastru_like_droso(load_gastruloid_data(BRA_RES_PATH))
+#     foxc1_sox2 = format_gastru_like_droso(load_gastruloid_data(FOXC1_RES_PATH))
+#     #TODO normalize
+#
+#     #need to calculate the covariance with neighbors for every pair of genes
+#     #start by getting the expression of the pairs as arrays
+#     bra2_sox2_wn_exp = np.dstack((sliding_window_view(np.stack(bra2_sox2['Sox2'].to_list()),window_shape=3, axis=1),bra_wn_arr))
+#     cdx2_sox2_wn_exp = np.dstack((sliding_window_view(np.stack(cdx2_sox2['Sox2'].tolist()), window_shape=3, axis=1), cdx2_wn_arr))
+#     foxc1_sox2_wn_exp = np.dstack(
+#         (sliding_window_view(np.stack(foxc1_sox2['Sox2'].tolist()), window_shape=3, axis=1), foxc1_wn_arr))
+#
+#     bra2_sox2_wn_cov = get_cov(bra2_sox2_wn_exp)[:, 3:, :3]
+#     cdx2_sox2_wn_cov = get_cov(cdx2_sox2_wn_exp)[:, 3:, :3]
+#     foxc1_sox2_wn_cov = get_cov(foxc1_sox2_wn_exp)[:,3:, :3]
+#     block_size = 3
+#
+#     wn_mean = get_all_genes_full_wn_mean(sox2_wn_arr, bra_wn_arr, cdx2_wn_arr, foxc1_wn_arr)
+#     #diagonal covs
+#     sox2_wn_cov = get_cov(sox2_wn_arr)
+#     bra_wn_cov = get_cov(bra_wn_arr)
+#     cdx2_wn_cov = get_cov(cdx2_wn_arr)
+#     foxc1_wn_cov = get_cov(foxc1_wn_arr)
+#
+#     batch_size = sox2_wn_cov.shape[0]  # 190
+#     block_size = sox2_wn_cov.shape[1]  # 3
+#     num_blocks = 4
+#     final_size = block_size * num_blocks
+#     full_wn_covs = np.zeros((batch_size, final_size, final_size))
+#     #the diagonal
+#     for i in range(batch_size):
+#         for j, A in enumerate([sox2_wn_cov, bra_wn_cov, cdx2_wn_cov, foxc1_wn_cov]):
+#             start = j * block_size
+#             end = (j + 1) * block_size
+#             full_wn_covs[i, start:end, start:end] = A[i]
+#
+#     for j in range(batch_size):
+#         for k, B in enumerate([bra2_sox2_wn_cov, cdx2_sox2_wn_cov, foxc1_sox2_wn_cov], start=1):
+#             row_start = k * block_size
+#             row_end = (k + 1) * block_size
+#             col_start = 0 * block_size
+#             col_end = 1 * block_size
+#
+#             # Lower block: [k,0]
+#             full_wn_covs[j, row_start:row_end, col_start:col_end] = B[j]
+#
+#             # Symmetric upper block: [0,k] is B.T
+#             full_wn_covs[j, col_start:col_end, row_start:row_end] = B[j].T
+#     # for k in range(batch_size):
+#     #     for m, B in enumerate([])
+#     print(full_wn_covs.shape)
+#     return full_wn_covs, wn_mean
 
 
 
@@ -398,17 +505,12 @@ def create_covariance_sc_joint_datasets():
     bra2_sox2 = format_gastru_like_droso(load_gastruloid_data(BRA_RES_PATH))
     foxc1_sox2 = format_gastru_like_droso(load_gastruloid_data(FOXC1_RES_PATH))
 
-    cdx2_arr = cdx2_sox2['Cdx2'].to_list()
-    cdx2_arr = np.stack(cdx2_arr)  # list of arrays
+    cdx2_arr = get_one_gene_exp_over_AP_axis('Cdx2')
+    bra2_arr = get_one_gene_exp_over_AP_axis('Bra')
+    foxc1_arr = get_one_gene_exp_over_AP_axis('Foxc1')
+    sox2_arr = get_sox2_exp()
 
-    bra2_arr = bra2_sox2['Bra'].to_list()
-    bra2_arr = np.stack(bra2_arr)
-
-    foxc1_arr = foxc1_sox2['Foxc1'].to_list()
-    foxc1_arr = np.stack(foxc1_arr)
-
-    sox2_arr = np.vstack([np.stack(cdx2_sox2['Sox2'].to_list()), np.stack(bra2_sox2['Sox2'].to_list()), np.stack(foxc1_sox2['Sox2'].to_list())])
-
+    # sox2_arr = np.vstack([np.stack(cdx2_sox2['Sox2'].to_list()), np.stack(bra2_sox2['Sox2'].to_list()), np.stack(foxc1_sox2['Sox2'].to_list())])
     sox2_var = np.var(sox2_arr, axis=0)
     bra2_var = np.var(bra2_arr, axis=0)
     cdx2_var = np.var(cdx2_arr, axis=0)
@@ -431,9 +533,10 @@ def create_covariance_sc_joint_datasets():
         full_covs[pos,3,0] = foxc1_sox2_cov[pos,0,1]
         full_covs[pos, 3, 3] = foxc1_var[pos]
     means_sc = np.vstack((np.mean(sox2_arr, axis=0), np.mean(bra2_arr, axis=0), np.mean(cdx2_arr, axis=0),np.mean(foxc1_arr, axis=0))).T
-    return full_covs[42:,:,:], means_sc[42:,:]
+    full_covs[np.isnan(full_covs)] = 0
+    return full_covs, means_sc
 
-def calculate_position_error_full_exp_profiles_sc(full_covs, means_sc):
+def calculate_position_error_gt_pos(full_covs, means_sc):
     num_pos = means_sc.shape[0]
     mean_exp_slopes = np.abs(np.diff(means_sc, axis=0))
     mean_exp_slopes = np.vstack([mean_exp_slopes, mean_exp_slopes[-1]])
@@ -453,9 +556,8 @@ def calculate_position_error_one_gene(full_covs, means):
 def plot_positional_information_gastruloids():
     covs_all_gastru_wn, mean_all_gastru_wn = create_cov_and_mean_joint_datasets_wn()
     covs_gastru_sc, means_gastru_sc = create_covariance_sc_joint_datasets()
-    wn_pos_error = calculate_position_error_full_exp_profiles_sc(covs_all_gastru_wn[42:, :, :],
-                                                                 mean_all_gastru_wn[42:, :])
-    sc_pos_error = calculate_position_error_full_exp_profiles_sc(covs_gastru_sc, means_gastru_sc)
+    wn_pos_error = calculate_position_error_gt_pos(covs_all_gastru_wn,mean_all_gastru_wn)
+    sc_pos_error = calculate_position_error_gt_pos(covs_gastru_sc, means_gastru_sc)
     i_sc = np.log2(GASTRULOID_L/((np.sqrt(2*np.pi))*sc_pos_error))[1:-1]
     i_wn = np.log2(GASTRULOID_L/((np.sqrt(2*np.pi))*wn_pos_error))
     i_unique = np.log2(GASTRULOID_L/((np.sqrt(2*np.pi))))*np.ones_like(i_sc)
@@ -464,6 +566,7 @@ def plot_positional_information_gastruloids():
     plt.plot(x_pos, i_wn, color='orange', label=DECODER_NAMES['wn'])
     plt.plot(x_pos, i_unique, color='black', label='Unique cell specification', linestyle='--')
     plt.legend()
+    plt.xlim(0.1,0.9)
     plt.xlabel('position (x/L)')
     plt.ylabel('positional information in bits')
     plt.tight_layout()
@@ -473,8 +576,8 @@ def plot_positional_information_gastruloids():
 def compare_position_error_all_datasets():
     covs_all_gastru_wn, mean_all_gastru_wn = create_cov_and_mean_joint_datasets_wn()
     covs_gastru_sc, means_gastru_sc = create_covariance_sc_joint_datasets()
-    wn_pos_error = calculate_position_error_full_exp_profiles_sc(covs_all_gastru_wn[42:,:,:], mean_all_gastru_wn[42:,:])
-    sc_pos_error = calculate_position_error_full_exp_profiles_sc(covs_gastru_sc, means_gastru_sc)
+    wn_pos_error = calculate_position_error_gt_pos(covs_all_gastru_wn[42:, :, :], mean_all_gastru_wn[42:, :])
+    sc_pos_error = calculate_position_error_gt_pos(covs_gastru_sc, means_gastru_sc)
     plt.plot(np.linspace(0, 1, len(wn_pos_error)), sc_pos_error[1:-1], label='sc')
     plt.plot(np.linspace(0, 1, len(wn_pos_error)), wn_pos_error, label='wn')
     plt.legend()
@@ -483,3 +586,4 @@ def compare_position_error_all_datasets():
     plt.show()
 
     print('')
+
