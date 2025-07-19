@@ -133,3 +133,10 @@ NEURAL_TUBE_HYPO_PATH = r"C:\Users\micha\thesis\code\data\position_decoding\neur
 NEURAL_TUBE_SET_A_GENES = ['GBS-GFP', 'pSmad']
 NEURAL_TUBE_SET_B_GENES = ['Nkx6.1', 'Pax3']
 NEURAL_TUBE_TIMES = [5,15,25,35,45,55,65]
+NEURAL_TUBE_BINS = 90
+NEURAL_TUBE_COLORS = {
+    'GBS-GFP': 'orange',
+    'pSmad': 'red',
+    'Nkx6.1': 'pink',
+    'Pax3': 'green'
+}

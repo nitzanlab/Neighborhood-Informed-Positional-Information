@@ -10,35 +10,36 @@ from data.Data import *
 from data.gastruloid_data import *
 
 class NeuralTube(Data):
-    def __init__(self, data_path, data=None, training=False, save_training=False, save_dir=None, load_dir=None, edge_trim=None):
+    def __init__(self, data_path,data_dir=None, data_timepoint=None, data=None, training=False, save_training=False, save_dir=None, load_dir=None, edge_trim=None):
+        self.data_dir = data_dir
+        self.data_timepoint = data_timepoint
         self.data_path = data_path
+        with open(self.data_path, 'rb') as f:
+            nt_data = pickle.load(f)
+        self.data = nt_data
         self.meta_data = None  # includes orient, dist, age, genotype,..
         self.save_training = save_training
         self.save_dir = save_dir
         self.edge_trim = edge_trim
         super().__init__(data, 'Gastruloid')
-        if training:
-            self.preprocess(data, edge_trim)
+        #if training:
+        self.preprocess(data, edge_trim)
 
-        else:
-            self.means_sc = None
-            self.covs_wn = None
-            self.means_wn = None
-            self.covs_wn = None
+        # else:
+        #     self.means_sc = None
+        #     self.covs_wn = None
+        #     self.means_wn = None
+        #     self.covs_wn = None
 
 
     def preprocess(self, data=None, edge_trim=None): #preprcoess training data
-        print("Preprocessing Gastruloid data")
-        all_training_data = load_gastruloid_data(self.data_path)
-        self.train_data = all_training_data
-        self.meta_data = ''
-        self.define_data_structures(all_training_data)
+        print("Preprocessing Neural Tube data")
+        self.define_data_structures()
 
 
-    def define_data_structures(self, normalized_data):
-        gene_exp_data = normalized_data
-        self.genes = {gene: i for i, gene in enumerate(gene_exp_data.keys())}
-        #training_arr = reshape_gene_data_to_arr(gene_exp_data, self.genes)
+    def define_data_structures(self):
+        self.genes = {gene: i for i, gene in enumerate(self.data.keys())}
+        #self.data_arr = reshape_gene_data_to_arr(self.data, self.genes)
         #TODO handle nans n
         # need to trim and turn to array without nans per gene
         # self.train_data = np.nan_to_num(training_arr, nan=0.0)
@@ -53,16 +54,16 @@ class NeuralTube(Data):
         if self.save_training:
             self.save_dir('wn')
 
-    def learn_mean_sc(self, decoding_genes_idx=np.arange(len(GAP_GENES))):
+    def learn_mean_sc(self, genes):
         gene_means = []
-        for gene in self.genes.keys():
-            if self.genes[gene] in decoding_genes_idx:
-                gene_data = self.train_data[gene]
+        for gene in genes:
+            if gene in NEURAL_TUBE_SET_A_GENES:
+                gene_data = self.data[gene]
                 gene_data_arr = np.vstack(gene_data)
                 gene_means.append(gene_data_arr.mean(axis=0))
         self.means_sc = np.array(gene_means).T
 
-    def learn_covariance_sc(self, decoding_genes_idx=np.arange(len(GAP_GENES))):
+    def learn_covariance_sc(self, decoding_genes):
         """
         The genes are measured on separate embryos, so we conduct the harshest assumption - that the gene expression
         of the genes is independent
@@ -71,9 +72,9 @@ class NeuralTube(Data):
         """
         covs = np.zeros((self.means_sc.shape[0], 2, 2))
         i=0
-        for gene in self.genes.keys():
-            if self.genes[gene] in decoding_genes_idx:
-                gene_data = self.train_data[gene]
+        for gene in decoding_genes:
+            if gene in NEURAL_TUBE_SET_A_GENES:
+                gene_data = self.data[gene]
                 gene_data_arr = np.vstack(gene_data)
                 covs[:,i,i] = np.var(gene_data_arr, axis=0)
                 i+=1
@@ -116,7 +117,7 @@ class NeuralTube(Data):
         num_positions = self.means_sc.shape[0]-2
         covs_wn = np.zeros((num_positions, len(NEURAL_TUBE_SET_A_GENES)*3, len(NEURAL_TUBE_SET_A_GENES)*3))
         for i,gene in enumerate(NEURAL_TUBE_SET_A_GENES):
-            gene_data = self.train_data[gene]
+            gene_data = self.data[gene]
             gene_data_arr = np.vstack(gene_data)
             gene_data_arr_wn = sliding_window_view(gene_data_arr, window_shape=3, axis=1)
             for pos in range(num_positions):
@@ -154,6 +155,21 @@ class NeuralTube(Data):
         self.learn_covariance_wn(train_data_wn)#, decoding_genes_idx)
 
     def plot_gene_exp_over_positions(self, decoding_genes):
+        positions = np.linspace(0,1, NEURAL_TUBE_BINS)
+        for gene in decoding_genes:
+            gene_exp = self.data[gene]
+            mean_per_pos_one_gene = np.mean(gene_exp, axis=0)
+            std_per_pos_one_gene = np.std(gene_exp,axis=0)
+            plt.plot(positions,mean_per_pos_one_gene, color=NEURAL_TUBE_COLORS[gene])
+            plt.fill_between(positions, mean_per_pos_one_gene - std_per_pos_one_gene,
+                             mean_per_pos_one_gene + std_per_pos_one_gene, alpha=0.5, label=gene,
+                             color=NEURAL_TUBE_COLORS[gene])
+        plt.xlabel(POSITION_X_LABEL)
+        plt.ylabel(EXP_Y_LABEL)
+        plt.legend()
+        plt.tight_layout()
+        plt.show()
+
         decoding_genes_idx = self.get_decode_genes_idx(decoding_genes)
         data_gene_subset = self.train_data[:,:,decoding_genes_idx]
         mean_gene_exp_over_positions = np.mean(data_gene_subset, axis=0)[EDGE_TRIM:-EDGE_TRIM,:]
@@ -171,9 +187,8 @@ class NeuralTube(Data):
         plt.show()
 
     def calculate_positional_error_per_decoding_map_GT_positions(self, decoding_genes):
-        decoding_genes_idx = self.get_decode_genes_idx(decoding_genes)
-        self.learn_mean_sc(decoding_genes_idx)
-        self.learn_covariance_sc(decoding_genes_idx)
+        self.learn_mean_sc(decoding_genes)
+        self.learn_covariance_sc(decoding_genes)
         self.learn_mean_wn()
         self.learn_covariance_wn()
 
@@ -250,32 +265,39 @@ def plot_summarized_neural_tube_over_axis_over_timepoints(genes):
     fig, axs = plt.subplots(1, 2, figsize=(14, 6), sharey=True)
 
     # WT
-    axs[0].boxplot(sc_errors_wt, positions=np.array(range(len(NEURAL_TUBE_TIMES))) - 0.15, widths=0.3,
-                   patch_artist=True, boxprops=dict(facecolor='lightblue'))
-    axs[0].boxplot(wn_errors_wt, positions=np.array(range(len(NEURAL_TUBE_TIMES))) + 0.15, widths=0.3,
-                   patch_artist=True, boxprops=dict(facecolor='orange'))
+    bps_sc_wt = axs[0].boxplot(sc_errors_wt, positions=np.array(range(len(NEURAL_TUBE_TIMES))) - 0.15, widths=0.3,
+                   patch_artist=True, boxprops=dict(facecolor=DECODER_TYPE_COLOR['sc']))
+    bps_wn_wt = axs[0].boxplot(wn_errors_wt, positions=np.array(range(len(NEURAL_TUBE_TIMES))) + 0.15, widths=0.3,
+                   patch_artist=True, boxprops=dict(facecolor=DECODER_TYPE_COLOR['wn']))
     axs[0].set_title('WT')
     axs[0].set_xticks(range(len(NEURAL_TUBE_TIMES)))
     axs[0].set_xticklabels(NEURAL_TUBE_TIMES)
     axs[0].set_ylim([ymin, ymax])
     axs[0].set_xlabel('Time')
     axs[0].set_ylabel('Positional Error')
-    axs[0].legend([plt.Rectangle((0, 0), 1, 1, facecolor='lightblue'), plt.Rectangle((0, 0), 1, 1, facecolor='orange')],
-                  ['sc', 'wn'], loc='upper right')
+    axs[0].legend([plt.Rectangle((0, 0), 1, 1, facecolor=DECODER_TYPE_COLOR['sc']), plt.Rectangle((0, 0), 1, 1, facecolor=DECODER_TYPE_COLOR['wn'])],
+                  [DECODER_NAMES['sc'], DECODER_NAMES['wn']], loc='upper right')
 
     # Hypo
-    axs[1].boxplot(sc_errors_hypo, positions=np.array(range(len(NEURAL_TUBE_TIMES))) - 0.15, widths=0.3,
-                   patch_artist=True, boxprops=dict(facecolor='lightblue'))
-    axs[1].boxplot(wn_errors_hypo, positions=np.array(range(len(NEURAL_TUBE_TIMES))) + 0.15, widths=0.3,
-                   patch_artist=True, boxprops=dict(facecolor='orange'))
+    bps_sc_hypo = axs[1].boxplot(sc_errors_hypo, positions=np.array(range(len(NEURAL_TUBE_TIMES))) - 0.15, widths=0.3,
+                   patch_artist=True, boxprops=dict(facecolor=DECODER_TYPE_COLOR['sc']))
+    bps_wn_hypo = axs[1].boxplot(wn_errors_hypo, positions=np.array(range(len(NEURAL_TUBE_TIMES))) + 0.15, widths=0.3,
+                   patch_artist=True, boxprops=dict(facecolor=DECODER_TYPE_COLOR['wn']))
     axs[1].set_title('Hypo')
     axs[1].set_xticks(range(len(NEURAL_TUBE_TIMES)))
     axs[1].set_xticklabels(NEURAL_TUBE_TIMES)
     axs[1].set_ylim([ymin, ymax])
     axs[1].set_xlabel('Time')
-    axs[1].legend([plt.Rectangle((0, 0), 1, 1, facecolor='lightblue'), plt.Rectangle((0, 0), 1, 1, facecolor='orange')],
-                  ['sc', 'wn'], loc='upper right')
-
+    axs[1].legend([plt.Rectangle((0, 0), 1, 1, facecolor=DECODER_TYPE_COLOR['sc']), plt.Rectangle((0, 0), 1, 1, facecolor=DECODER_TYPE_COLOR['wn'])],
+                  [DECODER_NAMES['sc'], DECODER_NAMES['wn']], loc='upper right')
+    for median_line in bps_sc_wt['medians']:
+        median_line.set(color='black', linewidth=2)
+    for median_line in bps_wn_wt['medians']:
+        median_line.set(color='black', linewidth=2)
+    for median_line in bps_sc_hypo['medians']:
+        median_line.set(color='black', linewidth=2)
+    for median_line in bps_wn_hypo['medians']:
+        median_line.set(color='black', linewidth=2)
     plt.tight_layout()
     plt.show()
 
