@@ -391,12 +391,58 @@ def get_pos_error_all_two_genes_combos():
     return all_two_gene_wn_err, all_two_gene_sc_err
 
 def get_pos_error_all_three_grene_combos():
-    gene_set1 = ['Bra','Sox2','Foxc1']
-    gene_set2 = ['Bra','Sox2', 'Cdx2']
+    gene_set1 = ['Sox2','Bra','Foxc1']
+    gene_set2 = ['Sox2', 'Bra','Cdx2']
     gene_set3 = ['Bra', 'Foxc1','Cdx2']
-    gene_set4 = ['Foxc1','Cdx2','Sox2']
-
+    gene_set4 = ['Sox2','Foxc1','Cdx2']
+    wn_pos_err_ind, sc_pos_err_ind = get_pos_error_three_independent_genes(gene_set3[0], gene_set3[1], gene_set[2])
     pass
+
+def get_pos_error_three_genes_with_sox(gene2:str, gene3:str):
+    #the first gene is sox
+    gene1 = 'Sox2'
+    gene2_sox2_wn_exp = get_joint_genes_wn_exp(gene2)
+    gene3_sox2_wn_exp = get_joint_genes_wn_exp(gene3)
+
+
+    gene2_sox2_wn_cov = get_cov(gene2_sox2_wn_exp)[:, 3:, :3]
+    gene3_sox2_wn_cov = get_cov(gene3_sox2_wn_exp)[:, 3:, :3]
+    sox2_wn_exp = get_wn_exp('Sox2')
+    sox2_wn_mean = np.mean(sox2_wn_exp, axis=0)
+    gene2_wn_mean = np.mean(gene2_sox2_wn_exp, axis=0)
+    gene3_wn_mean = np.mean(gene3_sox2_wn_exp, axis=0)
+    wn_mean = np.hstack((sox2_wn_mean, gene2_wn_mean, gene3_wn_mean))
+    pass
+def get_pos_error_three_independent_genes(gene1:str, gene2:str, gene3:str):
+    """
+    In the case that the genes are jointly independent.
+    In this case, this means that the genes are Bra, Foxc1, and Cdx2 (not necessarily in that order)
+    because these genes
+    were measured separately """
+    gene1_exp = get_one_gene_exp_over_AP_axis(gene1)
+    gene2_exp = get_one_gene_exp_over_AP_axis(gene2)
+    gene3_exp = get_one_gene_exp_over_AP_axis(gene3)
+    gene1_wn_exp = get_wn_exp_from_sc_exp(gene1_exp)
+    gene2_wn_exp = get_wn_exp_from_sc_exp(gene2_exp)
+    gene3_wn_exp = get_wn_exp_from_sc_exp(gene3_exp)
+    cov_sc = np.zeros((len(gene1_exp), 3, 3))
+    cov_sc[:, 0, 0] = np.var(gene1_exp, axis=0)
+    cov_sc[:, 1, 1] = np.var(gene2_exp, axis=0)
+    cov_sc[:, 2, 2] = np.var(gene3_exp, axis=0)
+
+    mean_sc = np.hstack((np.mean(gene1_exp, axis=0), np.mean(gene2_exp, axis=0), np.mean(gene3_exp, axis=0)))
+    mean_wn = np.hstack((np.mean(gene1_wn_exp, axis=0), np.mean(gene1_wn_exp, axis=0), np.mean(gene3_wn_exp,axis=0)))
+    cov_wn = np.zeros((len(gene1_exp)), 9, 9)
+    gene1_wn_cov = get_cov(gene1_wn_exp)
+    gene2_wn_cov = get_cov(gene2_wn_exp)
+    gene3_wn_cov = get_cov(gene3_wn_exp)
+    cov_wn[:, 0:3, 0:3] = gene1_wn_cov
+    cov_wn[:, 3:6, 3:6] = gene2_wn_cov
+    cov_wn[:, 6:9, 6:9] = gene3_wn_cov
+    wn_pos_err = calculate_position_error_gt_pos(cov_wn, mean_wn)
+    sc_pos_err = calculate_position_error_gt_pos(cov_sc, mean_sc)
+
+    return wn_pos_err, sc_pos_err
 
 def get_pos_error_two_independent_genes(gene1:str, gene2:str):
     #both are not sox2
@@ -405,8 +451,8 @@ def get_pos_error_two_independent_genes(gene1:str, gene2:str):
     gene1_wn_exp = get_wn_exp_from_sc_exp(gene1_exp)
     gene2_wn_exp = get_wn_exp_from_sc_exp(gene2_exp)
     cov_sc = np.zeros((len(gene1_exp), 2, 2))
-    cov_sc[:, 0, 0] = np.var(gene1_exp)
-    cov_sc[:, 1, 1] = np.var(gene2_exp)
+    cov_sc[:, 0, 0] = np.var(gene1_exp, axis=0)
+    cov_sc[:, 1, 1] = np.var(gene2_exp, axis=0)
     mean_sc = np.hstack((np.mean(gene1_exp,axis=0), np.mean(gene2_exp,axis=0)))
     mean_wn = np.hstack((np.mean(gene1_wn_exp, axis=0),np.mean(gene1_wn_exp,axis=0)))
     cov_wn = np.zeros((len(gene1_exp)),6,6)
@@ -436,7 +482,7 @@ def get_all_subsets_pos_error():
     for gene in gene_data_path_dict.keys():
         pass
     ##two genes (6)
-
+    wn_pos_error_2genes, sc_pos_error_2_genes = get_pos_error_all_two_genes_combos()
     ###three genes (4)
 
     ### four genes (1)

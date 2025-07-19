@@ -29,7 +29,8 @@ def reproduce_all_results():
 
 if __name__ == '__main__':
     set_style()
-    create_cov_and_mean_one_gene_wn('Bra')
+    get_pos_error_three_genes_with_sox('Bra','Foxc1')
+    #create_cov_and_mean_one_gene_wn('Bra')
     #plot_all_gastruloid_plots()
     #create_cov_and_mean_one_gene_wn('Bra')
     #create_cov_and_mean_one_gene_wn('Foxc1')
