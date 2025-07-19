@@ -328,7 +328,7 @@ def normalize_gastruloid_gene_expression(training_data, gene_name):
     data_decode = normalize_gene_exp(training_data, np.array(min_mean_exp), np.array(max_mean_exp), gene_name)
     return data_decode
 
-def create_cov_and_mean_one_gene_wn(gene_name):
+def pos_error_one_gene(gene_name):
     if gene_name != 'Sox2':
         data_path = gene_data_path_dict[gene_name]
         gastru_data = format_gastru_like_droso(load_gastruloid_data(data_path))
@@ -362,6 +362,7 @@ def create_cov_and_mean_one_gene_wn(gene_name):
     plt.xlim(0, 1)
     plt.legend()
     plt.show()
+    return wn_pos_err, sc_pos_err
 
 
 
@@ -560,10 +561,12 @@ def get_all_subsets_pos_error():
     wn_pos_4, sc_pos_4 = pos_err_all_four_genes()
 
 def get_pos_error_all_one_gene():
-    wn_pos_error_1gene, sc_pos_error_1gene = [],[]
+    all_wn_pos_error_1gene, all_sc_pos_error_1gene = [],[]
     for gene in gene_data_path_dict.keys():
-        pass
-    return wn_pos_error_1gene, sc_pos_error_1gene
+        wn_pos_error_1gene, sc_pos_error_1gene = pos_error_one_gene(gene)
+        all_wn_pos_error_1gene.append(wn_pos_error_1gene)
+        all_sc_pos_error_1gene.append(sc_pos_error_1gene)
+    return all_wn_pos_error_1gene, all_sc_pos_error_1gene
 
 def create_cov_and_mean_joint_datasets_wn():
     sox2_wn_arr = get_sox2_wn_exp()
