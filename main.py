@@ -29,7 +29,7 @@ def reproduce_all_results():
 
 if __name__ == '__main__':
     set_style()
-    get_all_subsets_pos_error()
+    get_all_subsets_pos_error(to_plot=True)
     #get_pos_error_three_genes_with_sox('Bra','Foxc1')
     #create_cov_and_mean_one_gene_wn('Bra')
     #plot_all_gastruloid_plots()

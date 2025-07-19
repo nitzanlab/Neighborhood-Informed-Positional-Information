@@ -375,8 +375,7 @@ def get_pos_error_all_two_genes_combos(to_plot=True):
             gene1 = gastru_genes[i]
             gene2 = gastru_genes[j]
             if gene1 == 'Sox2':
-                wn_pos_err, sc_pos_err = [], []
-            #     #wn_pos_err, sc_pos_err = get_pos_error_two_dependent_genes(gene1, gene2)
+               wn_pos_err, sc_pos_err = get_pos_error_two_dependent_genes(gene1, gene2)
             else:
                 wn_pos_err, sc_pos_err = get_pos_error_two_independent_genes(gene1, gene2)
             all_two_gene_wn_err.append(wn_pos_err)
@@ -574,13 +573,13 @@ def compute_mean_std(arrays, start_idx, end_idx):
     stats = []
     for arr in arrays:
         sliced = arr[:, start_idx:end_idx]
-        row_means = sliced.mean(axis=1)
-        stats.append((row_means.mean(), row_means.std()))
+        row_means = np.nanmean(sliced, axis=1)  # mean per row ignoring NaNs
+        stats.append((np.nanmean(row_means), np.nanstd(row_means)))
     return stats
 def plot_pos_error_mean_num_genes_gastruloids(wn_arr, sc_arr):
     M = np.linspace(0, 1, 100)
-    start_idx = int(GASTRULOID_L * 0.4)
-    end_idx = int(GASTRULOID_L * 0.8)
+    start_idx = int(GASTRULOID_NUM_BINS * 0.4)
+    end_idx = int(GASTRULOID_NUM_BINS * 0.8)
     # Get stats for both groups
     stats_wn = compute_mean_std(wn_arr[:-1], start_idx, end_idx)
     stats_sc = compute_mean_std(sc_arr[:-1], start_idx, end_idx)
@@ -591,8 +590,8 @@ def plot_pos_error_mean_num_genes_gastruloids(wn_arr, sc_arr):
     means_sc = [m for m, s in stats_sc]
     stds_sc = [s for m, s in stats_sc]
 
-    means_wn.append(np.mean(wn_arr[-1,start_idx:end_idx]))
-    means_sc.append(np.mean(sc_arr[-1, start_idx:end_idx]))
+    means_wn.append(np.nanmean(wn_arr[-1][start_idx:end_idx]))
+    means_sc.append(np.nanmean(sc_arr[-1][start_idx:end_idx]))
     stds_wn.append(0)
     stds_sc.append(0)
 
@@ -602,8 +601,8 @@ def plot_pos_error_mean_num_genes_gastruloids(wn_arr, sc_arr):
 
     # Plot
     fig, ax = plt.subplots()
-    bar1 = ax.bar(x - width / 2, means_wn, width, yerr=stds_wn, capsize=5, label=DECODER_NAMES['wn'])
-    bar2 = ax.bar(x + width / 2, means_sc, width, yerr=stds_sc, capsize=5, label=DECODER_NAMES['sc'])
+    bar1 = ax.bar(x - width / 2, means_wn, width, yerr=stds_wn, capsize=5, label=DECODER_NAMES['wn'], color='orange')
+    bar2 = ax.bar(x + width / 2, means_sc, width, yerr=stds_sc, capsize=5, label=DECODER_NAMES['sc'], color='blue')
 
     # Aesthetics
     ax.set_ylabel('mean position error gt positions')
