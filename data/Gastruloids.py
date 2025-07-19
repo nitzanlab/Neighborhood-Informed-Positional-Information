@@ -330,19 +330,17 @@ def normalize_gastruloid_gene_expression(training_data, gene_name):
 
 def pos_error_one_gene(gene_name):
     if gene_name == 'Sox2':
-        gene_exp = get_sox2_exp()[:,:,np.newaxis]
+        gene_exp = get_sox2_exp()
     else:
         gene_exp = get_one_gene_exp_over_AP_axis(gene_name)
-    gene_exp = get_one_gene_exp_over_AP_axis(gene_name)
     gene_wn_exp = get_wn_exp_from_sc_exp(gene_exp)
     num_positions = gene_exp.shape[1]
     cov_sc = np.var(gene_exp,axis=0)
     mean_sc = np.mean(gene_exp, axis=0)
-    mean_wn = np.mean(gene_wn_exp , axis=0)
-    cov_wn = np.cov(gene_wn_exp)
-
-    cov_wn[:, 0:3, 0:3] = gene1_wn_cov
-    cov_wn[:, 3:6, 3:6] = gene2_wn_cov
+    mean_wn = np.mean(gene_wn_exp, axis=0)
+    cov_wn = get_cov(gene_wn_exp)
+    sc_pos_err = calculate_position_error_gt_pos(cov_sc[:,np.newaxis,np.newaxis], mean_sc[:,np.newaxis])
+    wn_pos_err = calculate_position_error_gt_pos(cov_wn, mean_wn)
     # sc_pos_err_smoothened = uniform_filter1d(sc_pos_err[42:], window_size)
     # wn_pos_err_smoothened = uniform_filter1d(wn_pos_err[42:], window_size)
     # x_pos = np.linspace(0,1,len(sc_pos_err_smoothened))
@@ -386,18 +384,19 @@ def get_pos_error_all_two_genes_combos(to_plot=True):
             if to_plot:
                 gene_names = f'{gene1}_{gene2}'
                 plot_position_error_gt(wn_pos_err, sc_pos_err, gene_names)
-    return all_two_gene_wn_err, all_two_gene_sc_err
+    return np.array(all_two_gene_wn_err), np.array(all_two_gene_sc_err)
 
 def get_pos_error_all_three_gene_combos(to_plot=True):
-    all_wn_pos_error_3genes, all_sc_pos_error_3genes = [],[]
     gene_set1 = ['Sox2','Bra','Foxc1']
     gene_set2 = ['Sox2', 'Bra','Cdx2']
     gene_set3 = ['Bra', 'Foxc1','Cdx2']
     gene_set4 = ['Sox2','Foxc1','Cdx2']
-    #wn_pos_err_ind, sc_pos_err_ind = get_pos_error_three_independent_genes(gene_set3[0], gene_set3[1], gene_set3[2], to_plot)
+    wn_pos_err_ind, sc_pos_err_ind = get_pos_error_three_independent_genes(gene_set3[0], gene_set3[1], gene_set3[2], to_plot)
     wn_pos_err_dep1 , sc_pos_err_dep1 = get_pos_error_three_genes_with_sox(gene_set1[1], gene_set1[2], to_plot)
-    # wn_pos_err_dep2, sc_pos_err_dep2 = get_pos_error_three_genes_with_sox(gene_set2[1], gene_set2[2], to_plot)
-    # wn_pos_err_dep3, sc_pos_err_dep3 = get_pos_error_three_genes_with_sox(gene_set4[1], gene_set4[2],to_plot)
+    wn_pos_err_dep2, sc_pos_err_dep2 = get_pos_error_three_genes_with_sox(gene_set2[1], gene_set2[2], to_plot)
+    wn_pos_err_dep3, sc_pos_err_dep3 = get_pos_error_three_genes_with_sox(gene_set4[1], gene_set4[2],to_plot)
+    all_wn_pos_error_3genes = np.array([wn_pos_err_ind, wn_pos_err_dep1, wn_pos_err_dep2, wn_pos_err_dep3])
+    all_sc_pos_error_3genes = np.array([sc_pos_err_ind,sc_pos_err_dep1,sc_pos_err_dep2,sc_pos_err_dep3])
     return all_wn_pos_error_3genes, all_sc_pos_error_3genes
 
 
@@ -561,12 +560,62 @@ def get_pos_error_two_dependent_genes(gene1:str, gene2:str):
 def get_all_subsets_pos_error(to_plot=True):
     ##one gene (4)
     wn_pos_error_1gene, sc_pos_error_1gene = get_pos_error_all_one_gene(to_plot)
-    ##two genes (6)
+    # ##two genes (6)
     wn_pos_error_2genes, sc_pos_error_2genes = get_pos_error_all_two_genes_combos(to_plot)
-    ###three genes (4)
+    # ###three genes (4)
     wn_pos_error_3genes, sc_pos_error_3genes = get_pos_error_all_three_gene_combos(to_plot)
-    ### four genes (1)
+    # ### four genes (1)
     wn_pos_4, sc_pos_4 = pos_err_all_four_genes(to_plot)
+    wn_arr = [wn_pos_error_1gene, wn_pos_error_2genes,wn_pos_error_3genes, wn_pos_4]
+    sc_arr = [sc_pos_error_1gene, sc_pos_error_2genes, sc_pos_error_3genes, sc_pos_4]
+    plot_pos_error_mean_num_genes_gastruloids(wn_arr, sc_arr)
+
+def compute_mean_std(arrays, start_idx, end_idx):
+    stats = []
+    for arr in arrays:
+        sliced = arr[:, start_idx:end_idx]
+        row_means = sliced.mean(axis=1)
+        stats.append((row_means.mean(), row_means.std()))
+    return stats
+def plot_pos_error_mean_num_genes_gastruloids(wn_arr, sc_arr):
+    M = np.linspace(0, 1, 100)
+    start_idx = int(GASTRULOID_L * 0.4)
+    end_idx = int(GASTRULOID_L * 0.8)
+    # Get stats for both groups
+    stats_wn = compute_mean_std(wn_arr[:-1], start_idx, end_idx)
+    stats_sc = compute_mean_std(sc_arr[:-1], start_idx, end_idx)
+
+    # Prepare for plotting
+    means_wn = [m for m, s in stats_wn]
+    stds_wn = [s for m, s in stats_wn]
+    means_sc = [m for m, s in stats_sc]
+    stds_sc = [s for m, s in stats_sc]
+
+    means_wn.append(np.mean(wn_arr[-1,start_idx:end_idx]))
+    means_sc.append(np.mean(sc_arr[-1, start_idx:end_idx]))
+    stds_wn.append(0)
+    stds_sc.append(0)
+
+    labels = ['1', '2', '3','4']
+    x = np.arange(len(labels))  # the label locations
+    width = 0.35  # the width of the bars
+
+    # Plot
+    fig, ax = plt.subplots()
+    bar1 = ax.bar(x - width / 2, means_wn, width, yerr=stds_wn, capsize=5, label=DECODER_NAMES['wn'])
+    bar2 = ax.bar(x + width / 2, means_sc, width, yerr=stds_sc, capsize=5, label=DECODER_NAMES['sc'])
+
+    # Aesthetics
+    ax.set_ylabel('mean position error gt positions')
+    ax.set_xlabel('number of genes used for position decoding')
+    ax.set_title('GT Position Error Across Num Genes')
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels)
+    ax.legend()
+
+    plt.tight_layout()
+    plt.show()
+
 
 def get_pos_error_all_one_gene(to_plot):
     all_wn_pos_error_1gene, all_sc_pos_error_1gene = [],[]
@@ -576,7 +625,7 @@ def get_pos_error_all_one_gene(to_plot):
             plot_position_error_gt(wn_pos_error_1gene, sc_pos_error_1gene, gene)
         all_wn_pos_error_1gene.append(wn_pos_error_1gene)
         all_sc_pos_error_1gene.append(sc_pos_error_1gene)
-    return all_wn_pos_error_1gene, all_sc_pos_error_1gene
+    return np.array(all_wn_pos_error_1gene), np.array(all_sc_pos_error_1gene)
 
 def create_cov_and_mean_joint_datasets_wn():
     sox2_wn_arr = get_sox2_wn_exp()
@@ -792,7 +841,7 @@ def plot_position_error_gt(wn_pos_error, sc_pos_error, genes, smoothen=True):
     # plt.plot(np.linspace(0, 1, len(wn_pos_error)), wn_pos_error, label='wn')
     plt.legend()
     plt.title(f'pos error gt \n positions Gastruloids {genes}')
-    #plt.ylim(0, 100)
+    plt.ylim(0, 2)
     plt.xlim(0.1,0.9)
     plt.tight_layout()
     plt.show()
