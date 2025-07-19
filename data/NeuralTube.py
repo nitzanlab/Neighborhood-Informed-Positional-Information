@@ -302,7 +302,24 @@ def plot_summarized_neural_tube_over_axis_over_timepoints(genes):
     plt.show()
 
 
-
+def plot_positional_information_neural_tube():
+    covs_all_gastru_wn, mean_all_gastru_wn = create_cov_and_mean_joint_datasets_wn()
+    covs_gastru_sc, means_gastru_sc = create_covariance_sc_joint_datasets()
+    wn_pos_error = calculate_position_error_gt_pos(covs_all_gastru_wn,mean_all_gastru_wn)
+    sc_pos_error = calculate_position_error_gt_pos(covs_gastru_sc, means_gastru_sc)
+    i_sc = np.log2(GASTRULOID_L/((np.sqrt(2*np.pi))*sc_pos_error))[1:-1]
+    i_wn = np.log2(GASTRULOID_L/((np.sqrt(2*np.pi))*wn_pos_error))
+    i_unique = np.log2(GASTRULOID_L/((np.sqrt(2*np.pi))))*np.ones_like(i_sc)
+    x_pos = np.linspace(0,1,len(i_sc))
+    plt.plot(x_pos, i_sc, color='blue', label=DECODER_NAMES['sc'])
+    plt.plot(x_pos, i_wn, color='orange', label=DECODER_NAMES['wn'])
+    plt.plot(x_pos, i_unique, color='black', label='Unique cell specification', linestyle='--')
+    plt.legend()
+    plt.xlim(0.1,0.9)
+    plt.xlabel('position (x/L)')
+    plt.ylabel('positional information in bits')
+    plt.tight_layout()
+    plt.show()
 
 
 
