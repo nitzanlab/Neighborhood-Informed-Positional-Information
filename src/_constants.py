@@ -118,7 +118,7 @@ GASTRULOID_GENE_COLORS = {
     'Foxc1': 'pink',
     'Sox2': 'green'
 }
-
+GASTRULOID_GENES = ['Sox2','Foxc1','Cdx2','Bra']
 GASTRULOID_NUM_BINS = 194
 GASTRULOID_L = 494
 GASTRULOID_L_STD = 52
