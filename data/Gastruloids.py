@@ -395,24 +395,96 @@ def get_pos_error_all_three_grene_combos():
     gene_set2 = ['Sox2', 'Bra','Cdx2']
     gene_set3 = ['Bra', 'Foxc1','Cdx2']
     gene_set4 = ['Sox2','Foxc1','Cdx2']
-    wn_pos_err_ind, sc_pos_err_ind = get_pos_error_three_independent_genes(gene_set3[0], gene_set3[1], gene_set[2])
-    pass
+    wn_pos_err_ind, sc_pos_err_ind = get_pos_error_three_independent_genes(gene_set3[0], gene_set3[1])
+    wn_pos_err_dep1 , sc_pos_err_dep1 = get_pos_error_three_genes_with_sox(gene_set1[1], gene_set1[2])
+    wn_pos_err_dep2, sc_pos_err_dep2 = get_pos_error_three_genes_with_sox(gene_set2[1], gene_set2[2])
+    wn_pos_err_dep3, sc_pos_err_dep3 = get_pos_error_three_genes_with_sox(gene_set4[1], gene_set4[2])
+    return
 
 def get_pos_error_three_genes_with_sox(gene2:str, gene3:str):
     #the first gene is sox
     gene1 = 'Sox2'
+    #embryosXpositionsX6 (3) per gene, first sox
     gene2_sox2_wn_exp = get_joint_genes_wn_exp(gene2)
     gene3_sox2_wn_exp = get_joint_genes_wn_exp(gene3)
 
 
-    gene2_sox2_wn_cov = get_cov(gene2_sox2_wn_exp)[:, 3:, :3]
+    gene2_sox2_wn_cov = get_cov(gene2_sox2_wn_exp)[:, 3:, :3] #off diagonal covs
     gene3_sox2_wn_cov = get_cov(gene3_sox2_wn_exp)[:, 3:, :3]
-    sox2_wn_exp = get_wn_exp('Sox2')
+    sox2_wn_exp = get_sox2_wn_exp()
     sox2_wn_mean = np.mean(sox2_wn_exp, axis=0)
-    gene2_wn_mean = np.mean(gene2_sox2_wn_exp, axis=0)
-    gene3_wn_mean = np.mean(gene3_sox2_wn_exp, axis=0)
+    gene2_wn_mean = np.mean(gene2_sox2_wn_exp[:, :, 3:], axis=0) #the 3 last columns in axis 2 are of the non Sox gene
+    gene3_wn_mean = np.mean(gene3_sox2_wn_exp[:, :, 3:], axis=0)
     wn_mean = np.hstack((sox2_wn_mean, gene2_wn_mean, gene3_wn_mean))
-    pass
+
+
+    #diagonal wn covs
+    sox2_wn_cov = get_cov(sox2_wn_exp)
+    gene2_wn_cov = get_cov(get_wn_exp(gene2))
+    gene3_wn_cov = get_cov(get_wn_exp(gene3))
+
+    batch_size = sox2_wn_cov.shape[0]  # 192
+    block_size = sox2_wn_cov.shape[1]  # 3
+    num_blocks = 3
+    final_size = block_size * num_blocks
+    full_wn_covs = np.zeros((batch_size, final_size, final_size))
+    #the diagonal, the covariance in expression between neighboring positions, same gene
+    for i in range(batch_size):
+        for j, A in enumerate([sox2_wn_cov, gene2_wn_cov, gene3_wn_cov]):
+            start = j * block_size
+            end = (j + 1) * block_size
+            full_wn_covs[i, start:end, start:end] = A[i]
+
+    for j in range(batch_size):
+        for k, B in enumerate([gene2_sox2_wn_cov, gene3_sox2_wn_cov], start=1):
+            row_start = k * block_size
+            row_end = (k + 1) * block_size
+            col_start = 0 * block_size
+            col_end = 1 * block_size
+
+            # Lower block: [k,0]
+            full_wn_covs[j, row_start:row_end, col_start:col_end] = B[j]
+
+            # Symmetric upper block: [0,k] is B.T
+            full_wn_covs[j, col_start:col_end, row_start:row_end] = B[j].T
+    print(full_wn_covs.shape)
+    full_wn_covs[np.isnan(full_wn_covs)] = 0
+
+    # TODO remaining :  sc covs
+    gene2_sc_exp = get_one_gene_exp_over_AP_axis(gene2)
+    gene3_sc_exp = get_one_gene_exp_over_AP_axis(gene3)
+    sox2_sc_exp = get_sox2_exp()
+
+    sc_mean = np.hstack((np.mean(sox2_sc_exp, axis=0), np.mean(gene2_sc_exp),
+                         np.mean(gene3_sc_exp)))
+
+    # sox2_arr = np.vstack([np.stack(cdx2_sox2['Sox2'].to_list()), np.stack(bra2_sox2['Sox2'].to_list()), np.stack(foxc1_sox2['Sox2'].to_list())])
+    sox2_var = np.var(sox2_sc_exp, axis=0)
+    gene2_var = np.var(gene2_sc_exp, axis=0)
+    gene3_var = np.var(gene3_sc_exp, axis=0)
+
+    sox_gene2_sc_exp = get_joint_genes_sc_exp(gene2)
+    sox_gene3_sc_exp = get_joint_genes_sc_exp(gene3)
+    sox2_gene2_cov = get_cov(sox_gene2_sc_exp)
+    sox2_gene3_cov = get_cov(sox_gene3_sc_exp)
+
+
+    full_covs_sc = np.zeros((sox2_sc_exp.shape[1], 4, 4))  # will be sox2,bra,cdx2,foxc1 order
+    for pos in np.arange(full_covs_sc.shape[0]):
+        full_covs_sc[pos, 0, 0] = sox2_var[pos]  # sox2
+        full_covs_sc[pos, 0, 1] = sox2_gene2_cov[pos, 0, 1]  # cov sox2 bra
+        full_covs_sc[pos, 0, 2] = sox2_gene3_cov[pos, 0, 1]
+        full_covs_sc[pos, 1, 0] = sox2_gene2_cov[pos, 0, 1]
+        full_covs_sc[pos, 1, 1] = gene2_var[pos]  # 0 cov bra2 , cdx2, and bra2 foxc1 , so 1,2 = 0 , 1,3 = 0
+        full_covs_sc[pos, 2, 0] = sox2_gene3_cov[pos, 0, 1]
+        full_covs_sc[pos, 2, 2] = gene3_var[pos]
+    sc_pos_error = calculate_position_error_gt_pos(full_covs_sc, sc_mean)
+    wn_pos_error = calculate_position_error_gt_pos(full_wn_covs, wn_mean)
+    return wn_pos_error, sc_pos_error
+
+
+
+
 def get_pos_error_three_independent_genes(gene1:str, gene2:str, gene3:str):
     """
     In the case that the genes are jointly independent.
@@ -479,14 +551,19 @@ def get_pos_error_two_dependent_genes(gene1:str, gene2:str):
 
 def get_all_subsets_pos_error():
     ##one gene (4)
-    for gene in gene_data_path_dict.keys():
-        pass
+    wn_pos_error_1gene, sc_pos_error_1gene = get_pos_error_all_one_gene()
     ##two genes (6)
-    wn_pos_error_2genes, sc_pos_error_2_genes = get_pos_error_all_two_genes_combos()
+    wn_pos_error_2genes, sc_pos_error_2genes = get_pos_error_all_two_genes_combos()
     ###three genes (4)
-
+    wn_pos_error_3genes, sc_pos_error_3genes = get_pos_error_all_three_grene_combos()
     ### four genes (1)
     wn_pos_4, sc_pos_4 = pos_err_all_four_genes()
+
+def get_pos_error_all_one_gene():
+    wn_pos_error_1gene, sc_pos_error_1gene = [],[]
+    for gene in gene_data_path_dict.keys():
+        pass
+    return wn_pos_error_1gene, sc_pos_error_1gene
 
 def create_cov_and_mean_joint_datasets_wn():
     sox2_wn_arr = get_sox2_wn_exp()
