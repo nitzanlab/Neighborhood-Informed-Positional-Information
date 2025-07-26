@@ -47,7 +47,7 @@ class NeuralTube(Data):
         #     self.train_data = self.train_data[:,self.edge_trim:-self.edge_trim,:]
 
 
-    def train_wn(self, decoding_genes):
+    def train_wn(self, decoding_genes, train_wn_data):
         decoding_genes_idx = self.get_decode_genes_idx(decoding_genes)
         self.learn_mean_wn(decoding_genes_idx)
         self.learn_covariance_wn(train_wn_data, decoding_genes_idx)
@@ -70,7 +70,7 @@ class NeuralTube(Data):
         :param decoding_genes_idx:
         :return:
         """
-        covs = np.zeros((self.means_sc.shape[0], 2, 2))
+        covs = np.zeros((self.means_sc.shape[0], len(decoding_genes), len(decoding_genes)))
         i=0
         for gene in decoding_genes:
             if gene in NEURAL_TUBE_SET_A_GENES:
@@ -113,7 +113,35 @@ class NeuralTube(Data):
            (self.means_sc[:-2, :], self.means_sc[1:-1, :], self.means_sc[2:, :]), axis=1)
         self.means_wn = reshaped_wn_position_means
 
-    def learn_covariance_wn(self, train_data_wn=None):
+    def learn_covariance_wn(self, decoding_genes, train_data_wn=None, decoding_genes_idx=None):
+        if len(decoding_genes) == 1:
+            self.learn_covariance_wn_one_gene(decoding_genes)
+        else:
+            self.learn_covariance_wn_both_genes()
+
+    def learn_covariance_wn_one_gene(self, gene):
+        num_positions = self.means_sc.shape[0] - 2
+        covs_wn = np.zeros((num_positions,  3, 3))
+        gene_data = self.data[gene[0]]
+        gene_data_arr = np.vstack(gene_data)
+        gene_data_arr_wn = sliding_window_view(gene_data_arr, window_shape=3, axis=1)
+        for pos in range(num_positions):
+            covs_wn_pos = np.cov(gene_data_arr_wn[:, pos, :], rowvar=False)
+            covs_wn[pos] = covs_wn_pos
+            # covs_wn[pos, i, i] = covs_wn_pos[0, 0]
+            # covs_wn[pos, i, i + 2] = covs_wn_pos[0, 1]
+            # covs_wn[pos, i, i + 4] = covs_wn_pos[0, 2]
+            #
+            # covs_wn[pos, i + 2, i] = covs_wn_pos[1, 0]
+            # covs_wn[pos, i + 2, i + 2] = covs_wn_pos[1, 1]
+            # covs_wn[pos, i + 2, i + 4] = covs_wn_pos[1, 2]
+            #
+            # covs_wn[pos, i + 4, i] = covs_wn_pos[2, 0]
+            # covs_wn[pos, i + 4, i + 2] = covs_wn_pos[2, 1]
+            # covs_wn[pos, i + 4, i + 4] = covs_wn_pos[2, 2]
+        self.covs_wn = covs_wn
+
+    def learn_covariance_wn_both_genes(self, train_data_wn=None):
         num_positions = self.means_sc.shape[0]-2
         covs_wn = np.zeros((num_positions, len(NEURAL_TUBE_SET_A_GENES)*3, len(NEURAL_TUBE_SET_A_GENES)*3))
         for i,gene in enumerate(NEURAL_TUBE_SET_A_GENES):
@@ -152,7 +180,7 @@ class NeuralTube(Data):
         decoding_genes_idx = self.get_decode_genes_idx(decoding_genes)
         train_data_wn = self.reshape_data_for_wn(self.train_data[:,:, decoding_genes_idx])
         self.learn_mean_wn(train_data_wn)#, decoding_genes_idx)
-        self.learn_covariance_wn(train_data_wn)#, decoding_genes_idx)
+        self.learn_covariance_wn_both_genes(train_data_wn)#, decoding_genes_idx)
 
     def plot_gene_exp_over_positions(self, decoding_genes):
         positions = np.linspace(0,1, NEURAL_TUBE_BINS)
@@ -190,7 +218,8 @@ class NeuralTube(Data):
         self.learn_mean_sc(decoding_genes)
         self.learn_covariance_sc(decoding_genes)
         self.learn_mean_wn()
-        self.learn_covariance_wn()
+        self.learn_covariance_wn(decoding_genes)
+
 
 
     def calculate_position_inf_GT(self, decoding_type):
@@ -237,6 +266,56 @@ def plot_all_time_points(title):
         neuraltube = NeuralTube(data_path=nt_path, training=True, edge_trim=20)
         neuraltube.plot_comparison_position_inf_GT(NEURAL_TUBE_SET_A_GENES, title=f'{time} {title}')
 
+
+def plot_summarized_neural_tube_gene_combos_one_timepoint(genes:list[str], tmpt:str, data_type='wt'):
+    if data_type == 'wt':
+        neural_tube_data_path = os.path.join(NEURAL_TUBE_WT_PATH, f'expressions_h={tmpt}.pkl')
+    else:
+        neural_tube_data_path = os.path.join(NEURAL_TUBE_HYPO_PATH, f'mutants_h={tmpt}.pkl')
+    neural_tube_data= NeuralTube(data_path=neural_tube_data_path, training=True, edge_trim=20)
+    neural_tube_data.calculate_positional_error_per_decoding_map_GT_positions([genes[0]])
+    one_gene_sc_pos_error_mean = [np.median(neural_tube_data.calculate_position_inf_GT('sc'))]
+    one_gene_wn_pos_error_mean = [np.median(neural_tube_data.calculate_position_inf_GT('wn'))]
+    neural_tube_data.calculate_positional_error_per_decoding_map_GT_positions([genes[1]])
+    one_gene_sc_pos_error_mean.append(np.median(neural_tube_data.calculate_position_inf_GT('sc')))
+    one_gene_wn_pos_error_mean.append(np.median(neural_tube_data.calculate_position_inf_GT('wn')))
+    neural_tube_data.calculate_positional_error_per_decoding_map_GT_positions(genes)
+    two_gene_pos_error_sc = np.median(neural_tube_data.calculate_position_inf_GT('sc'))
+    two_gene_pos_error_wn = np.median(neural_tube_data.calculate_position_inf_GT('wn'))
+    means = [
+        np.mean(one_gene_sc_pos_error_mean),
+        np.mean(one_gene_wn_pos_error_mean),
+        two_gene_pos_error_sc,
+        two_gene_pos_error_wn
+    ]
+    stds = [
+        np.std(one_gene_sc_pos_error_mean),
+        np.std(one_gene_wn_pos_error_mean),
+        0,  # Single value -> std = 0
+        0
+    ]
+
+    # Positions: two pairs
+    x = np.array([0, 0.4, 1.0, 1.4])  # spacing between bars
+    colors = [DECODER_TYPE_COLOR['sc'], DECODER_TYPE_COLOR['wn']]  # sc = blue, wn = orange
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+
+    # Plot bars
+    ax.bar(x[0], means[0], yerr=stds[0], color=colors[0], width=0.3, capsize=5, label=DECODER_NAMES['sc'])
+    ax.bar(x[1], means[1], yerr=stds[1], color=colors[1], width=0.3, capsize=5, label=DECODER_NAMES['wn'])
+    ax.bar(x[2], means[2], yerr=stds[2], color=colors[0], width=0.3)
+    ax.bar(x[3], means[3], yerr=stds[3], color=colors[1], width=0.3)
+
+    # Labels for the groups
+    ax.set_xticks([0.2, 1.2])
+    ax.set_xticklabels(['1', '2'])
+    ax.set_xlabel('number of decoding genes')
+    ax.set_ylabel('position error')
+    ax.legend(loc='upper right')
+
+    plt.tight_layout()
+    plt.show()
 def plot_summarized_neural_tube_over_axis_over_timepoints(genes):
     sc_errors_wt = []
     wn_errors_wt = []

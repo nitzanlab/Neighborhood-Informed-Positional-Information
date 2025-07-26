@@ -29,12 +29,13 @@ def reproduce_all_results():
 
 if __name__ == '__main__':
     set_style()
+    plot_summarized_neural_tube_gene_combos_one_timepoint(NEURAL_TUBE_SET_A_GENES,'35')
     #plot_positional_information_gastruloids()
     #plot_summarized_neural_tube_over_axis_over_timepoints(NEURAL_TUBE_SET_A_GENES)
     # neural_tube_data = NeuralTube(NEURAL_TUBE_WT_PATH,'expressions_h=5.pkl')
     # #neural_tube_data.plot_gene_exp_over_positions(NEURAL_TUBE_SET_A_GENES)
     # neural_tube_data.plot_comparison_position_inf_GT(NEURAL_TUBE_SET_A_GENES, 'wt')
-    print('')
+    #print('')
     #get_all_subsets_pos_error(to_plot=True)
     #get_pos_error_three_genes_with_sox('Bra','Foxc1')
     #create_cov_and_mean_one_gene_wn('Bra')
@@ -48,7 +49,7 @@ if __name__ == '__main__':
     #
     # # with open(os.path.join(NEURAL_TUBE_WT_PATH,'expressions_h=5.pkl'), 'rb') as f:
     # #     nt_wt_5 = pickle.load(f)
-    plot_summarized_neural_tube_over_axis_over_timepoints(NEURAL_TUBE_SET_A_GENES)
+    #plot_summarized_neural_tube_over_axis_over_timepoints(NEURAL_TUBE_SET_A_GENES)
 
     #calculate_neural_tube_decoding_maps_one_gene_group(NEURAL_TUBE_SET_A_GENES, data_path=nt_path)
 
