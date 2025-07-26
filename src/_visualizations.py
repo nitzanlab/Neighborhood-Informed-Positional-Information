@@ -871,7 +871,4 @@ def plot_pr_exp(pr_arr):
         plt.show()
 
 #################################Gastruloid plots###########################################
-def plot_all_gastruloid_plots():
-    print('')
-    #plot_all_gasturloid_genes_exp_together()
-    plot_positional_information_gastruloids()
+

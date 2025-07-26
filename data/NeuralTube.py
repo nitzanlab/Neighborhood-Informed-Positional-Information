@@ -190,24 +190,8 @@ class NeuralTube(Data):
             std_per_pos_one_gene = np.std(gene_exp,axis=0)
             plt.plot(positions,mean_per_pos_one_gene, color=NEURAL_TUBE_COLORS[gene])
             plt.fill_between(positions, mean_per_pos_one_gene - std_per_pos_one_gene,
-                             mean_per_pos_one_gene + std_per_pos_one_gene, alpha=0.5, label=gene,
+                             mean_per_pos_one_gene + std_per_pos_one_gene, alpha=0.5, label=NEURAL_TUBE_CHEMICAL_TO_GENE_NAMES[gene],
                              color=NEURAL_TUBE_COLORS[gene])
-        plt.xlabel(POSITION_X_LABEL)
-        plt.ylabel(EXP_Y_LABEL)
-        plt.legend()
-        plt.tight_layout()
-        plt.show()
-
-        decoding_genes_idx = self.get_decode_genes_idx(decoding_genes)
-        data_gene_subset = self.train_data[:,:,decoding_genes_idx]
-        mean_gene_exp_over_positions = np.mean(data_gene_subset, axis=0)[EDGE_TRIM:-EDGE_TRIM,:]
-        std_gene_exp_over_positions = np.std(data_gene_subset, axis=0)[EDGE_TRIM:-EDGE_TRIM,:]
-        positions = np.linspace(POSITIONS_START, POSITIONS_END, mean_gene_exp_over_positions.shape[0])
-        for i, gene in enumerate(decoding_genes):
-            mean_per_pos_one_gene = mean_gene_exp_over_positions[:,i]
-            std_per_pos_one_gene = std_gene_exp_over_positions[:, i]
-            plt.plot(positions, mean_per_pos_one_gene, color=GAP_GENE_COLORS[gene])
-            plt.fill_between(positions, mean_per_pos_one_gene-std_per_pos_one_gene, mean_per_pos_one_gene+std_per_pos_one_gene,alpha=0.5, label=gene,  color=GAP_GENE_COLORS[gene])
         plt.xlabel(POSITION_X_LABEL)
         plt.ylabel(EXP_Y_LABEL)
         plt.legend()
@@ -283,32 +267,50 @@ def plot_summarized_neural_tube_gene_combos_one_timepoint(genes:list[str], tmpt:
     two_gene_pos_error_sc = np.median(neural_tube_data.calculate_position_inf_GT('sc'))
     two_gene_pos_error_wn = np.median(neural_tube_data.calculate_position_inf_GT('wn'))
     means = [
-        np.mean(one_gene_sc_pos_error_mean),
         np.mean(one_gene_wn_pos_error_mean),
+        np.mean(one_gene_sc_pos_error_mean),
+        two_gene_pos_error_wn,
         two_gene_pos_error_sc,
-        two_gene_pos_error_wn
+
     ]
     stds = [
-        np.std(one_gene_sc_pos_error_mean),
         np.std(one_gene_wn_pos_error_mean),
+        np.std(one_gene_sc_pos_error_mean),
         0,  # Single value -> std = 0
         0
     ]
+    bar_width = 0.05  # reasonable thin bar
+    gap_between_pairs = 0.4  # space between pairs
 
-    # Positions: two pairs
-    x = np.array([0, 0.4, 1.0, 1.4])  # spacing between bars
-    colors = [DECODER_TYPE_COLOR['sc'], DECODER_TYPE_COLOR['wn']]  # sc = blue, wn = orange
+    # X positions
+    x_positions = [
+        0,
+        0 + bar_width,  # pair 1
+        0 + bar_width + gap_between_pairs,
+        0 + 2 * bar_width + gap_between_pairs  # pair 2
+    ]
+
+    colors = [DECODER_TYPE_COLOR['wn'], DECODER_TYPE_COLOR['sc']]  # wn = orange, sc = blue
 
     fig, ax = plt.subplots(figsize=(8, 6))
 
     # Plot bars
-    ax.bar(x[0], means[0], yerr=stds[0], color=colors[0], width=0.3, capsize=5, label=DECODER_NAMES['sc'])
-    ax.bar(x[1], means[1], yerr=stds[1], color=colors[1], width=0.3, capsize=5, label=DECODER_NAMES['wn'])
-    ax.bar(x[2], means[2], yerr=stds[2], color=colors[0], width=0.3)
-    ax.bar(x[3], means[3], yerr=stds[3], color=colors[1], width=0.3)
+    ax.bar(x_positions[0], means[0], yerr=stds[0], color=colors[0], width=bar_width, capsize=5,
+           label=DECODER_NAMES['wn'])
+    ax.bar(x_positions[1], means[1], yerr=stds[1], color=colors[1], width=bar_width, capsize=5,
+           label=DECODER_NAMES['sc'])
+    ax.bar(x_positions[2], means[2], yerr=stds[2], color=colors[0], width=bar_width)
+    ax.bar(x_positions[3], means[3], yerr=stds[3], color=colors[1], width=bar_width)
 
     # Labels for the groups
-    ax.set_xticks([0.2, 1.2])
+    ax.set_xticks([
+        (x_positions[0] + x_positions[1]) / 2,
+        (x_positions[2] + x_positions[3]) / 2
+    ])
+    ax.set_xticklabels(['1', '2'])
+
+    # Labels for the groups
+    plt.xticks([(x_positions[0] + x_positions[1]) / 2, (x_positions[2] + x_positions[3]) / 2], ['1', '2'])
     ax.set_xticklabels(['1', '2'])
     ax.set_xlabel('number of decoding genes')
     ax.set_ylabel('position error')
@@ -393,15 +395,16 @@ def plot_positional_information_neural_tube(tmpt='35'):
     i_unique_max = np.log2((NEURAL_TUBE_L/4.5)/((np.sqrt(2*np.pi))))*np.ones_like(i_sc)
     i_unique_min = np.log2((NEURAL_TUBE_L/5.3)/((np.sqrt(2*np.pi))))*np.ones_like(i_sc)
     x_pos = np.linspace(0,1,len(i_sc))
-    plt.plot(x_pos, i_sc, color='blue', label=DECODER_NAMES['sc'])
-    plt.plot(x_pos, i_wn, color='orange', label=DECODER_NAMES['wn'])
     plt.plot(x_pos, i_unique, color='black', label='Unique cell specification', linestyle='--')
     plt.fill_between(x_pos, i_unique_min, i_unique_max, color='black', alpha=0.3)
+    plt.plot(x_pos, i_sc, color='blue', label=DECODER_NAMES['sc'])
+    plt.plot(x_pos, i_wn, color='orange', label=DECODER_NAMES['wn'])
+
     plt.legend()
     plt.xlim(0.1,0.9)
     plt.xlabel('position (x/L)')
     plt.ylabel('positional information in bits',labelpad=15)
-    plt.tight_layout(rect=[0.05, 0, 1, 1])
+    plt.tight_layout()
     plt.show()
 
 
@@ -443,3 +446,10 @@ def plot_neuraltube_data(data_dict, dict_name):
     plt.ylim(0,4000)
     plt.tight_layout()
     plt.show()
+
+def neural_tube_summary_plots():
+    data_path = os.path.join(NEURAL_TUBE_WT_PATH,'expressions_h=5.pkl')
+    neural_tube_data = NeuralTube(data_path, training=False)
+    neural_tube_data.plot_gene_exp_over_positions(NEURAL_TUBE_SET_A_GENES)
+    plot_positional_information_neural_tube()
+    plot_summarized_neural_tube_gene_combos_one_timepoint(NEURAL_TUBE_SET_A_GENES, '35')

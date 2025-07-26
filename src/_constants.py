@@ -122,8 +122,9 @@ GASTRULOID_GENES = ['Sox2','Foxc1','Cdx2','Bra']
 GASTRULOID_NUM_BINS = 194
 GASTRULOID_L = 494
 GASTRULOID_L_STD = 52
-GASTRULOID_N = 36
-
+GASTRULOID_N = 494/13.5 #Mean Gastruloid length/Mean Gastruloid Cell Diameter
+GASTRULOID_N_MAX = (494+52)/(13.5-0.8) #the maxmimum length and minimum cell size
+GASTRULOID_N_MIN = (494-52)/(13.5+0.8) #the minimum length and maximum cell size
 
 
 ##Neural Tube
@@ -131,6 +132,10 @@ NEURAL_TUBE_WT_PATH = r"C:\Users\micha\thesis\code\data\position_decoding\neural
 NEURAL_TUBE_HYPO_PATH = r"C:\Users\micha\thesis\code\data\position_decoding\neural_tube\neural_tube_hypo"
 
 NEURAL_TUBE_SET_A_GENES = ['GBS-GFP', 'pSmad']
+NEURAL_TUBE_CHEMICAL_TO_GENE_NAMES = {
+ 'GBS-GFP': 'Shh',
+ 'pSmad': 'BMP'
+}
 NEURAL_TUBE_SET_B_GENES = ['Nkx6.1', 'Pax3']
 NEURAL_TUBE_TIMES = [5,15,25,35,45,55,65]
 NEURAL_TUBE_BINS = 90

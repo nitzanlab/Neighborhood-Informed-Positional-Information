@@ -277,13 +277,15 @@ def plot_all_gasturloid_genes_exp_together():
         std_expr = np.nanstd(expr, axis=0)
         x = np.linspace(0,1, expr.shape[1])  # x-axis positions (e.g., 0 to M-1)
 
-        plt.plot(x, (mean_expr)/1000, label=gene,color=GASTRULOID_GENE_COLORS[gene], linewidth=2)
-        plt.fill_between(x, (mean_expr - std_expr)/1000, (mean_expr + std_expr)/1000, color=GASTRULOID_GENE_COLORS[gene], alpha=0.5)
+        plt.plot(x, (mean_expr)/1000, color=GASTRULOID_GENE_COLORS[gene], linewidth=2)
+        plt.fill_between(x, (mean_expr - std_expr)/1000, (mean_expr + std_expr)/1000, color=GASTRULOID_GENE_COLORS[gene], alpha=0.5,label=gene)
 
-    plt.xlabel("x/L")
-    plt.ylabel("I (a.u)")
-    plt.title("Gastruloid Gene Expression")
+    plt.xlabel(POSITION_X_LABEL)
+    plt.ylabel(EXP_Y_LABEL)
+    #plt.title("Gastruloid Gene Expression")
     plt.legend()
+    yticks = np.arange(0.0, 6.0, 1.0)
+    plt.yticks(yticks, [f"{v:.1f}" for v in yticks])
     plt.xlim(0.1,0.9)
     plt.tight_layout()
     plt.show()
@@ -601,13 +603,13 @@ def plot_pos_error_mean_num_genes_gastruloids(wn_arr, sc_arr):
 
     # Plot
     fig, ax = plt.subplots()
-    bar1 = ax.bar(x - width / 2, means_wn, width, yerr=stds_wn, capsize=5, label=DECODER_NAMES['wn'], color='orange')
-    bar2 = ax.bar(x + width / 2, means_sc, width, yerr=stds_sc, capsize=5, label=DECODER_NAMES['sc'], color='blue')
+    bar1 = ax.bar(x - width / 2, means_wn, width, yerr=stds_wn, capsize=5, label=DECODER_NAMES['wn'], color=DECODER_TYPE_COLOR['wn'])
+    bar2 = ax.bar(x + width / 2, means_sc, width, yerr=stds_sc, capsize=5, label=DECODER_NAMES['sc'], color=DECODER_TYPE_COLOR['sc'])
 
     # Aesthetics
     ax.set_ylabel('mean position error gt positions')
-    ax.set_xlabel('number of genes used for position decoding')
-    ax.set_title('GT Position Error Across Num Genes')
+    ax.set_xlabel('number of genes used for\n position decoding')
+    #ax.set_title('GT Position Error Across Num Genes')
     ax.set_xticks(x)
     ax.set_xticklabels(labels)
     ax.legend()
@@ -780,7 +782,7 @@ def create_covariance_sc_joint_datasets():
 def calculate_position_error_gt_pos(full_covs, full_means):
     num_pos = full_means.shape[0]
     mean_exp_slopes = np.abs(np.diff(full_means, axis=0))
-    mean_exp_slopes = np.vstack([mean_exp_slopes, mean_exp_slopes[-1]])
+    mean_exp_slopes =np.vstack([mean_exp_slopes, mean_exp_slopes[-1]])
     position_error = np.zeros(num_pos)
     for pos in range(num_pos):
         position_error[pos] = 1 / (mean_exp_slopes[pos, :] @ np.linalg.inv(
@@ -802,10 +804,14 @@ def plot_positional_information_gastruloids():
     i_sc = np.log2(GASTRULOID_L/((np.sqrt(2*np.pi))*sc_pos_error))[1:-1]
     i_wn = np.log2(GASTRULOID_L/((np.sqrt(2*np.pi))*wn_pos_error))
     i_unique = np.log2(GASTRULOID_N/((np.sqrt(2*np.pi))))*np.ones_like(i_sc)
+    i_unique_min = np.log2(GASTRULOID_N_MIN/((np.sqrt(2*np.pi))))*np.ones_like(i_sc)
+    i_unique_max = np.log2(GASTRULOID_N_MAX/((np.sqrt(2*np.pi))))*np.ones_like(i_sc)
     x_pos = np.linspace(0,1,len(i_sc))
+    plt.plot(x_pos, i_unique, color='black', label='Unique cell specification', linestyle='--')
+    plt.fill_between(x_pos,i_unique_min, i_unique_max, color='black', alpha=0.3)
     plt.plot(x_pos, i_sc, color='blue', label=DECODER_NAMES['sc'])
     plt.plot(x_pos, i_wn, color='orange', label=DECODER_NAMES['wn'])
-    plt.plot(x_pos, i_unique, color='black', label='Unique cell specification', linestyle='--')
+
     plt.legend()
     plt.xlim(0.1,0.9)
     plt.xlabel('position (x/L)')
@@ -846,4 +852,8 @@ def plot_position_error_gt(wn_pos_error, sc_pos_error, genes, smoothen=True):
     plt.show()
 
 
+def gastruloids_summary_plots():
+    plot_positional_information_gastruloids()
+    plot_all_gasturloid_genes_exp_together()
+    get_all_subsets_pos_error(to_plot=False)
 
