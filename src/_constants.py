@@ -140,3 +140,5 @@ NEURAL_TUBE_COLORS = {
     'Nkx6.1': 'pink',
     'Pax3': 'green'
 }
+NEURAL_TUBE_L = 204.432
+NEURAL_TUBE_N = NEURAL_TUBE_L/4.9

@@ -29,7 +29,8 @@ def reproduce_all_results():
 
 if __name__ == '__main__':
     set_style()
-    plot_summarized_neural_tube_gene_combos_one_timepoint(NEURAL_TUBE_SET_A_GENES,'35')
+    plot_positional_information_neural_tube()
+    #plot_summarized_neural_tube_gene_combos_one_timepoint(NEURAL_TUBE_SET_A_GENES,'35')
     #plot_positional_information_gastruloids()
     #plot_summarized_neural_tube_over_axis_over_timepoints(NEURAL_TUBE_SET_A_GENES)
     # neural_tube_data = NeuralTube(NEURAL_TUBE_WT_PATH,'expressions_h=5.pkl')
