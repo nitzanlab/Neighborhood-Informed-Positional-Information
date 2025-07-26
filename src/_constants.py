@@ -122,9 +122,11 @@ GASTRULOID_GENES = ['Sox2','Foxc1','Cdx2','Bra']
 GASTRULOID_NUM_BINS = 194
 GASTRULOID_L = 494
 GASTRULOID_L_STD = 52
+GASTRULOID_CELL_DIAMETER = 13.5
+GASTRULOID_CELL_DIAMETER_STD = 0.8
 GASTRULOID_N = 494/13.5 #Mean Gastruloid length/Mean Gastruloid Cell Diameter
-GASTRULOID_N_MAX = (494+52)/(13.5-0.8) #the maxmimum length and minimum cell size
-GASTRULOID_N_MIN = (494-52)/(13.5+0.8) #the minimum length and maximum cell size
+GASTRULOID_N_MAX = (GASTRULOID_L+GASTRULOID_L_STD)/(GASTRULOID_CELL_DIAMETER-GASTRULOID_CELL_DIAMETER_STD) #the maxmimum length and minimum cell size
+GASTRULOID_N_MIN = (GASTRULOID_L-GASTRULOID_L_STD)/(GASTRULOID_CELL_DIAMETER+GASTRULOID_CELL_DIAMETER_STD) #the minimum length and maximum cell size
 
 
 ##Neural Tube

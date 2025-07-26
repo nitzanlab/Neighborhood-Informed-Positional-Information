@@ -313,7 +313,7 @@ def plot_summarized_neural_tube_gene_combos_one_timepoint(genes:list[str], tmpt:
     plt.xticks([(x_positions[0] + x_positions[1]) / 2, (x_positions[2] + x_positions[3]) / 2], ['1', '2'])
     ax.set_xticklabels(['1', '2'])
     ax.set_xlabel('number of decoding genes')
-    ax.set_ylabel('position error')
+    ax.set_ylabel('mean position error gt positions')
     ax.legend(loc='upper right')
 
     plt.tight_layout()
@@ -404,6 +404,7 @@ def plot_positional_information_neural_tube(tmpt='35'):
     plt.xlim(0.1,0.9)
     plt.xlabel('position (x/L)')
     plt.ylabel('positional information in bits',labelpad=15)
+    plt.gca().yaxis.set_major_locator(MaxNLocator(integer=True))
     plt.tight_layout()
     plt.show()
 
