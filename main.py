@@ -29,7 +29,7 @@ def reproduce_all_results():
 
 if __name__ == '__main__':
     set_style()
-    #neural_tube_summary_plots()
+    neural_tube_summary_plots()
     gastruloids_summary_plots()
     #plot_positional_information_gastruloids()
     #plot_summarized_neural_tube_over_axis_over_timepoints(NEURAL_TUBE_SET_A_GENES)
@@ -74,7 +74,7 @@ if __name__ == '__main__':
     # #plot_gastruloids_data(bra_dict,'BRA')
     # plot_gastruloids_data(foxc1_dict, 'foxc1')
     #plot_gastruloids_data(foxc1_dict, 'FOXC1')
-    #set_style()
-    #reproduce_all_results()
-
+    # set_style()
+    # reproduce_all_results()
+    # plot_figure3_panels()
 

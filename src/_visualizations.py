@@ -143,9 +143,11 @@ def plot_positional_information_in_bits():
 
     mean_wn_stds = np.mean(sigma_x_wn, axis=0)
     std_wn_stds = np.std(sigma_x_wn, axis=0)
+    print(f'NI pos-error: {np.mean(mean_wn_stds):.3f}±{np.std(mean_wn_stds):.3f}')
 
     mean_sc_stds = np.mean(sigma_x_sc, axis=0)[1:-1]
     std_sc_stds = np.std(sigma_x_sc, axis=0)[1:-1]
+    print(f'CI pos-error: {np.mean(mean_sc_stds):.3f}±{np.std(mean_sc_stds):.3f}')
 
     positions = np.linspace(POSITIONS_START, POSITIONS_END, len(mean_sc_stds))
 

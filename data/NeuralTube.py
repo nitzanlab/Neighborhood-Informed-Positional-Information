@@ -16,6 +16,7 @@ class NeuralTube(Data):
         self.data_path = data_path
         with open(self.data_path, 'rb') as f:
             nt_data = pickle.load(f)
+
         self.data = nt_data
         self.meta_data = None  # includes orient, dist, age, genotype,..
         self.save_training = save_training
@@ -183,6 +184,7 @@ class NeuralTube(Data):
         self.learn_covariance_wn_both_genes(train_data_wn)#, decoding_genes_idx)
 
     def plot_gene_exp_over_positions(self, decoding_genes):
+        plt.figure()
         positions = np.linspace(0,1, NEURAL_TUBE_BINS)
         for gene in decoding_genes:
             gene_exp = self.data[gene]
@@ -193,9 +195,12 @@ class NeuralTube(Data):
                              mean_per_pos_one_gene + std_per_pos_one_gene, alpha=0.5, label=NEURAL_TUBE_CHEMICAL_TO_GENE_NAMES[gene],
                              color=NEURAL_TUBE_COLORS[gene])
         plt.xlabel(POSITION_X_LABEL)
-        plt.ylabel(EXP_Y_LABEL)
+        plt.ylabel('gene expression')
+        plt.xlim(0, 1)
         plt.legend()
         plt.tight_layout()
+        plt.savefig('figures/neural_tube_expression.pdf')
+        plt.savefig('figures/neural_tube_expression.png')
         plt.show()
 
     def calculate_positional_error_per_decoding_map_GT_positions(self, decoding_genes):
@@ -225,7 +230,7 @@ class NeuralTube(Data):
             position_error[pos] = 1/(mean_exp_slopes[pos, :] @ np.linalg.inv(
                 covs[pos, :, :]) @ mean_exp_slopes[pos, :])
         #TODO add calculation and plot
-        return position_error
+        return np.sqrt(position_error)
 
     def plot_comparison_position_inf_GT(self, genes, title):
         self.calculate_positional_error_per_decoding_map_GT_positions(genes)
@@ -252,6 +257,7 @@ def plot_all_time_points(title):
 
 
 def plot_summarized_neural_tube_gene_combos_one_timepoint(genes:list[str], tmpt:str, data_type='wt'):
+    plt.figure()
     if data_type == 'wt':
         neural_tube_data_path = os.path.join(NEURAL_TUBE_WT_PATH, f'expressions_h={tmpt}.pkl')
     else:
@@ -264,11 +270,22 @@ def plot_summarized_neural_tube_gene_combos_one_timepoint(genes:list[str], tmpt:
     one_gene_sc_pos_error_mean.append(np.median(neural_tube_data.calculate_position_inf_GT('sc')))
     one_gene_wn_pos_error_mean.append(np.median(neural_tube_data.calculate_position_inf_GT('wn')))
     neural_tube_data.calculate_positional_error_per_decoding_map_GT_positions(genes)
+
     two_gene_pos_error_sc = np.median(neural_tube_data.calculate_position_inf_GT('sc'))
     two_gene_pos_error_wn = np.median(neural_tube_data.calculate_position_inf_GT('wn'))
+
+    wn_err = neural_tube_data.calculate_position_inf_GT('wn')
+    sc_err = neural_tube_data.calculate_position_inf_GT('sc')
+    quants = lambda x: .5*(np.median(x)-np.quantile(x, 0.159) + np.quantile(x, .841) - np.median(x))
+    print(f'neural tube NI pos-err: {np.mean(wn_err):.3f} +- {np.std(wn_err):.3f}, quants {quants(wn_err):.3f}')
+    print(f'neural tube CI pos-err: {np.mean(sc_err):.3f} +- {np.std(sc_err):.3f}, quants {quants(sc_err):.3f}')
+    print(f'neural tube single gene NI: {np.mean(one_gene_wn_pos_error_mean):.3f} +- {np.std(one_gene_wn_pos_error_mean):.3f}')
+    print(f'neural tube single gene CI: {np.mean(one_gene_sc_pos_error_mean):.3f} +- {np.std(one_gene_sc_pos_error_mean):.3f}')
+
+
     means = [
-        np.mean(one_gene_wn_pos_error_mean),
-        np.mean(one_gene_sc_pos_error_mean),
+        np.median(one_gene_wn_pos_error_mean),
+        np.median(one_gene_sc_pos_error_mean),
         two_gene_pos_error_wn,
         two_gene_pos_error_sc,
 
@@ -313,11 +330,15 @@ def plot_summarized_neural_tube_gene_combos_one_timepoint(genes:list[str], tmpt:
     plt.xticks([(x_positions[0] + x_positions[1]) / 2, (x_positions[2] + x_positions[3]) / 2], ['1', '2'])
     ax.set_xticklabels(['1', '2'])
     ax.set_xlabel('number of decoding genes')
-    ax.set_ylabel('mean position error gt positions')
+    ax.set_ylabel('median positional error')
     ax.legend(loc='upper right')
 
     plt.tight_layout()
+    plt.savefig('figures/neural_tube_preds.pdf')
+    plt.savefig('figures/neural_tube_preds.png')
     plt.show()
+
+
 def plot_summarized_neural_tube_over_axis_over_timepoints(genes):
     sc_errors_wt = []
     wn_errors_wt = []
@@ -380,21 +401,24 @@ def plot_summarized_neural_tube_over_axis_over_timepoints(genes):
     for median_line in bps_wn_hypo['medians']:
         median_line.set(color='black', linewidth=2)
     plt.tight_layout()
+    plt.savefig('figures/neural_tube_preds.pdf')
+    plt.savefig('figures/neural_tube_preds.png')
     plt.show()
 
 
 def plot_positional_information_neural_tube(tmpt='35'):
+    plt.figure()
     neural_tube_data_path = os.path.join(NEURAL_TUBE_WT_PATH, f'expressions_h={tmpt}.pkl')
     neural_tube_data = NeuralTube(data_path=neural_tube_data_path, training=True, edge_trim=20)
     neural_tube_data.calculate_positional_error_per_decoding_map_GT_positions(NEURAL_TUBE_SET_A_GENES)
     wn_pos_error = neural_tube_data.calculate_position_inf_GT('wn')
     sc_pos_error = neural_tube_data.calculate_position_inf_GT('sc')
-    i_sc = np.log2(NEURAL_TUBE_L/((np.sqrt(2*np.pi))*sc_pos_error))
-    i_wn = np.log2(NEURAL_TUBE_L/((np.sqrt(2*np.pi))*wn_pos_error))
-    i_unique = np.log2(NEURAL_TUBE_N/((np.sqrt(2*np.pi))))*np.ones_like(i_sc)
-    i_unique_max = np.log2((NEURAL_TUBE_L/4.5)/((np.sqrt(2*np.pi))))*np.ones_like(i_sc)
-    i_unique_min = np.log2((NEURAL_TUBE_L/5.3)/((np.sqrt(2*np.pi))))*np.ones_like(i_sc)
-    x_pos = np.linspace(0,1,len(i_sc))
+    i_sc = np.clip(np.log2(NEURAL_TUBE_L) - np.log2(np.sqrt(2*np.pi)*sc_pos_error), 0, 100)
+    i_wn = np.clip(np.log2(NEURAL_TUBE_L) - np.log2(np.sqrt(2*np.pi)*wn_pos_error), 0, 100)
+    i_unique = np.log2(NEURAL_TUBE_N)*np.ones_like(i_sc)
+    i_unique_max = np.log2((NEURAL_TUBE_L/4.5))*np.ones_like(i_sc)
+    i_unique_min = np.log2((NEURAL_TUBE_L/5.3))*np.ones_like(i_sc)
+    x_pos = np.linspace(0, 1, len(i_sc))
     plt.plot(x_pos, i_unique, color='black', label='Unique cell specification', linestyle='--')
     plt.fill_between(x_pos, i_unique_min, i_unique_max, color='black', alpha=0.3)
     plt.plot(x_pos, i_sc, color='blue', label=DECODER_NAMES['sc'])
@@ -406,6 +430,8 @@ def plot_positional_information_neural_tube(tmpt='35'):
     plt.ylabel('positional information in bits',labelpad=15)
     plt.gca().yaxis.set_major_locator(MaxNLocator(integer=True))
     plt.tight_layout()
+    plt.savefig('figures/neural_tube_posinfo.pdf')
+    plt.savefig('figures/neural_tube_posinfo.png')
     plt.show()
 
 
@@ -449,8 +475,9 @@ def plot_neuraltube_data(data_dict, dict_name):
     plt.show()
 
 def neural_tube_summary_plots():
-    data_path = os.path.join(NEURAL_TUBE_WT_PATH,'expressions_h=5.pkl')
+    h = 35
+    data_path = os.path.join(NEURAL_TUBE_WT_PATH, f'expressions_h={h}.pkl')
     neural_tube_data = NeuralTube(data_path, training=False)
     neural_tube_data.plot_gene_exp_over_positions(NEURAL_TUBE_SET_A_GENES)
-    plot_positional_information_neural_tube()
-    plot_summarized_neural_tube_gene_combos_one_timepoint(NEURAL_TUBE_SET_A_GENES, '35')
+    plot_positional_information_neural_tube(tmpt=h)
+    plot_summarized_neural_tube_gene_combos_one_timepoint(NEURAL_TUBE_SET_A_GENES, str(h))

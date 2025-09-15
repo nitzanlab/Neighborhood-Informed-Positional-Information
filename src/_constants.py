@@ -13,15 +13,15 @@ and plotting results
 """
 ###CHANGE HOME_DIR path to the path
 
-HOME_DIR = r'C:\Users\micha\Neighborhood_Informed_PD'
+HOME_DIR = r'info'
 DROSO_RES_DIR = os.path.join(HOME_DIR, 'Droso_Res')
 DROSO_DATA_DIR_PATH = os.path.join(HOME_DIR, 'Drosophila_Data')
 WHERE = os.path.join(DROSO_DATA_DIR_PATH,'Gap')
 GASTRU_RES_DIR = os.path.join(HOME_DIR, 'Gastruloids')
 NEURAL_TUBE_RES_DIR = os.path.join(HOME_DIR, 'Neural_Tube')
 
-MUTANT_PAIR_RULE_DIR_PATH = os.path.join(DROSO_DATA_DIR_PATH, 'Pair_rule\pair_rule_data_raw_dorsal_')
-MUTANT_GAP_GENE_DIR_PATH = os.path.join(DROSO_DATA_DIR_PATH, 'Gap\gap_data_raw_dorsal_wt_')
+MUTANT_PAIR_RULE_DIR_PATH = os.path.join(DROSO_DATA_DIR_PATH, 'Pair_rule/pair_rule_data_raw_dorsal_')
+MUTANT_GAP_GENE_DIR_PATH = os.path.join(DROSO_DATA_DIR_PATH, 'Gap/gap_data_raw_dorsal_wt_')
 
 """
 Constants:
@@ -101,10 +101,10 @@ DECODING_TYPES = ['wn', 'sc']
 
 
 ##Gastruloids
-BRA_10_PATH = r"C:\Users\micha\thesis\code\data\position_decoding\human_gastruloids_morris_reformatted\results_Bra_10.pkl"
-BRA_RES_PATH = r"C:\Users\micha\thesis\code\data\position_decoding\human_gastruloids_morris_reformatted\results_Bra.pkl"
-CDX2_RES_PATH =r"C:\Users\micha\thesis\code\data\position_decoding\human_gastruloids_morris_reformatted\results_CDx2.pkl"
-FOXC1_RES_PATH = r"C:\Users\micha\thesis\code\data\position_decoding\human_gastruloids_morris_reformatted\results_Foxc1.pkl"
+BRA_10_PATH = r"info/human_gastruloids_morris_reformatted/results_Bra_10.pkl"
+BRA_RES_PATH = r"info/Gastruloids/results_Bra.pkl"
+CDX2_RES_PATH =r"info/Gastruloids/results_Cdx2.pkl"
+FOXC1_RES_PATH = r"info/Gastruloids/results_Foxc1.pkl"
 
 gene_data_path_dict =  {
     'Bra': BRA_RES_PATH,
@@ -130,8 +130,8 @@ GASTRULOID_N_MIN = (GASTRULOID_L-GASTRULOID_L_STD)/(GASTRULOID_CELL_DIAMETER+GAS
 
 
 ##Neural Tube
-NEURAL_TUBE_WT_PATH = r"C:\Users\micha\thesis\code\data\position_decoding\neural_tube\neural_tube"
-NEURAL_TUBE_HYPO_PATH = r"C:\Users\micha\thesis\code\data\position_decoding\neural_tube\neural_tube_hypo"
+NEURAL_TUBE_WT_PATH = r"info/Neural_Tube"
+NEURAL_TUBE_HYPO_PATH = r"info/neural_tube/neural_tube_hypo"
 
 NEURAL_TUBE_SET_A_GENES = ['GBS-GFP', 'pSmad']
 NEURAL_TUBE_CHEMICAL_TO_GENE_NAMES = {
